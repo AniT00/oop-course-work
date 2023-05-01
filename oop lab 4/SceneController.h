@@ -4,6 +4,7 @@
 
 #include <SFML/Graphics.hpp>
 #include <iostream>
+#include <list>
 
 class SceneController
 {
@@ -19,32 +20,18 @@ protected:
 public:
 	void add(Figure* figure);
 
-	Figure* giveAway(Figure* figure);
-
-	const Figure* getCurrentComposite() const;
-
-	void createNewComposite();
-
-	void deleteNewComposite()
-	{
-		delete m_new_composite;
-		m_figures[m_figures.size() - 1] = nullptr;
-		m_new_composite = nullptr;
-		m_current_figure = nullptr;
-	}
-
-	void endNewComposite();
+	bool remove(Figure* figure);
 
 	void update();
 
 	void draw();
 
-	void setCurrentFigure(Figure* figure);
-
-	void resetActiveToDefault();
-
-	void setCurrentComposite(Figure* figure);
-
+	/// <summary>
+	/// Returns pair of figures: first pair element - composite,
+	/// which contains second pair element - intersected primitive.
+	/// </summary>
+	/// <param name="position"></param>
+	/// <returns></returns>
 	std::pair<Figure*, Figure*> getIntersection(const sf::Vector2f& position);
 
 	Figure* getActiveFigure();
@@ -58,7 +45,7 @@ public:
 	~SceneController();
 		
 private:
-	std::vector<Figure*> m_figures;
+	std::list<Figure*> m_figures;
 
 	sf::RenderWindow* windowTarget;
 

@@ -21,8 +21,8 @@
 enum class InputMode
 {
 	MAIN,
-	ADD_COMPOSITE,
-	OBJECT_EDITING,
+	ADD_FIGURE,
+	EDIT_OBJECT,
 	EXPAND_COMPOSITE,
 	UNITE_COMPOSITES
 };
@@ -56,14 +56,17 @@ private:
 
 	void changeMode(InputMode _mode);
 
+	void setActive(Figure* figure);
+
 private:
 	sf::RenderWindow scene_window;
-	SceneController* sceneController;
+	SceneController* m_sceneController;
 	InputMode mode;
 	//sf::Shape* active_object = nullptr;
-	Figure* active_composite = nullptr;
+	Figure* m_active_figure = nullptr;
+	Figure* m_construct_composite = nullptr;
 	ObjectManipulation active_manipulating_object = ObjectManipulation::NONE, object_manipulation_type = ObjectManipulation::NONE;
 	sf::Vector2i mouse_position;
-	Figure* first_of_unity = nullptr;
+	Figure* first_of_union = nullptr;
 };
 
