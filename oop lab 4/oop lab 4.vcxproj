@@ -134,6 +134,7 @@
     <ClCompile Include="Circle.cpp" />
     <ClCompile Include="Composite.cpp" />
     <ClCompile Include="LeafBase.cpp" />
+    <ClCompile Include="Prototype.cpp" />
     <ClCompile Include="SceneController.cpp" />
     <ClCompile Include="Figure.cpp" />
     <ClCompile Include="main.cpp" />
@@ -145,6 +146,7 @@
     <ClInclude Include="Circle.h" />
     <ClInclude Include="Composite.h" />
     <ClInclude Include="LeafBase.h" />
+    <ClInclude Include="Prototype.h" />
     <ClInclude Include="SceneController.h" />
     <ClInclude Include="Figure.h" />
     <ClInclude Include="Program.h" />

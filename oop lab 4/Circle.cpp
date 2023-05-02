@@ -15,8 +15,13 @@ Circle::Circle(sf::CircleShape* circleShape)
 
 Circle::Circle(const Circle& obj)
 {
-	m_shape = new sf::CircleShape(*dynamic_cast<const sf::CircleShape*>(&obj.getShape()));
+	m_shape = new sf::CircleShape(*dynamic_cast<const sf::CircleShape*>(obj.m_shape));
 	m_trail = obj.m_trail;
+}
+
+Prototype* Circle::clone()
+{
+    return (Prototype*)new Circle(*this);
 }
 
 void Circle::reset()

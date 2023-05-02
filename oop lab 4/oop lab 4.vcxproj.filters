@@ -48,6 +48,9 @@
     <ClCompile Include="Triangle.cpp">
       <Filter>Исходные файлы\Figures</Filter>
     </ClCompile>
+    <ClCompile Include="Prototype.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Figure.h">
@@ -73,6 +76,9 @@
     </ClInclude>
     <ClInclude Include="Rectangle.h">
       <Filter>Файлы заголовков\Figures</Filter>
+    </ClInclude>
+    <ClInclude Include="Prototype.h">
+      <Filter>Файлы заголовков</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

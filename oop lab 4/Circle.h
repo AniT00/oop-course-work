@@ -12,6 +12,8 @@ public:
 
 	Circle(const Circle& obj);
 
+	Prototype* clone() override;
+
 	void reset() override;
 };
 

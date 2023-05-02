@@ -12,6 +12,8 @@ public:
 
 	Rectangle(const Rectangle& obj);
 
+	Prototype* clone();
+
 	void reset() override;
 };
 

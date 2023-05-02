@@ -4,51 +4,70 @@ Program::Program()
 	: scene_window(sf::VideoMode(SCENE_WINDOW_WIDTH, SCENE_WINDOW_HEIGHT), "Scene")
 {
 	scene_window.setFramerateLimit(FRAME_LIMIT);
+	sf::View view(scene_window.getView());
+	view.setCenter(0.f, 0.f);
+	scene_window.setView(view);
 	m_sceneController = SceneController::GetInstance(&scene_window);
 	changeMode(InputMode::MAIN);
+
+	std::vector<Figure*> default_prototypes({
+		new Circle(),
+		new Triangle(),
+		new Rectangle()
+		});
+	m_prototype_names = std::list<std::string>({
+		"Cirlce",
+		"Triangle",
+		"Rectangle"
+		});
+	m_prototypes.insert({
+		{ "Cirlce",		Composite(default_prototypes[0]).clone() },
+		{ "Triangle",	Composite(default_prototypes[1]).clone() },
+		{ "Rectangle",	Composite(default_prototypes[2]).clone() }
+		});
+	
 }
 
 void Program::run()
 {
-
-	/*RenderWindow hierarchy_window
-	(
-	VideoMode
-	(
-	HIERARCHY_WINDOW_WIDTH,
-	HIERARCHY_WINDOW_HEIGHT
-	),
-	"Object hierarchy");*/
-
 	while (scene_window.isOpen())
 	{
 		handleEvents();
 
-		handleObjectManipulation();
+		if (m_mode == InputMode::EDIT_OBJECT &&
+			object_manipulation_type != ObjectManipulation::NONE)
+		{
+			handleObjectManipulation();
+		}
 
 		m_sceneController->update();
 
 		m_sceneController->draw();
-
-		//hierarchy_window.clear(Color::White);
-
-		//hierarchy_window.display();
 	}
 }
 
 Program::~Program()
 {
 	delete m_sceneController;
+	for (auto elem : m_prototypes)
+	{
+		delete elem.second;
+	}
 }
 
 void Program::handleObjectManipulation()
 {
-	if (mode == InputMode::EDIT_OBJECT &&
-		object_manipulation_type != ObjectManipulation::NONE
-		&& sf::Mouse::isButtonPressed(sf::Mouse::Left))
+	if (sf::Mouse::isButtonPressed(sf::Mouse::Left) &&
+		m_mouse_pressed_in_window &&
+		m_active_figure != nullptr)
 	{
-		sf::Vector2i cur = sf::Mouse::getPosition(scene_window);
+		
+		sf::Vector2f cur = getMouseWorldPosition();
 		sf::Vector2f change(cur - mouse_position);
+		if (change.x != 0 || change.y != 0)
+		{
+			m_active_composite_modified = true;
+		}
 		switch (object_manipulation_type)
 		{
 		case ObjectManipulation::MOVING:
@@ -138,20 +157,17 @@ void Program::handleInput(sf::Event event)
 		OnKeyboardPress(event.key);
 		break;
 	case MouseButtonPressed:
-		if (mode == InputMode::MAIN)
-		{	// Select object.
-			std::pair<Figure*, Figure*> clicked_figure = m_sceneController->getIntersection(sf::Vector2f(sf::Mouse::getPosition(scene_window)));
-			Figure* composite = clicked_figure.first;
-			Figure* primitive = clicked_figure.second;
-			if (composite != nullptr)
-			{
-				setActive(m_active_figure == composite ? primitive : composite);
-				changeMode(InputMode::EDIT_OBJECT);
-			}
-		}
-		else if (mode == InputMode::EXPAND_COMPOSITE)
-		{	// add existing composite.
-			std::pair<Figure*, Figure*> clicked_figure = m_sceneController->getIntersection(sf::Vector2f(sf::Mouse::getPosition(scene_window)));
+		switch (m_mode)
+		{
+		case InputMode::EDIT_OBJECT:
+			// Register changes in mouse position.
+			m_mouse_pressed_in_window = true;
+			mouse_position = getMouseWorldPosition();
+			break;
+		case InputMode::EXPAND_COMPOSITE:
+		{
+			// add existing composite.
+			std::pair<Figure*, Figure*> clicked_figure = m_sceneController->getIntersection(getMouseWorldPosition());
 			if (clicked_figure.first != nullptr &&
 				clicked_figure.first != m_construct_composite) // Trying to add yourself in.
 			{
@@ -159,39 +175,83 @@ void Program::handleInput(sf::Event event)
 				m_construct_composite->add(clicked_figure.first);
 				changeMode(InputMode::EDIT_OBJECT);
 			}
+			break;
 		}
-		else if (mode == InputMode::UNITE_COMPOSITES)
-		{	// unite two composites.
-			std::pair<Figure*, Figure*> clicked_figure = m_sceneController->getIntersection(sf::Vector2f(sf::Mouse::getPosition(scene_window)));
-			Figure* second_of_union = clicked_figure.first;
-			if (second_of_union != nullptr)
-			{
-				if (first_of_union == nullptr)
-				{
-					first_of_union = second_of_union;
-				}
-				else
-				{
-					m_sceneController->remove(first_of_union);
-					m_sceneController->remove(second_of_union);
-
-					Composite* composite = new Composite();
-					composite->add(first_of_union);
-					composite->add(second_of_union);
-					m_sceneController->add(composite);
-					first_of_union = nullptr;
-					changeMode(InputMode::EDIT_OBJECT);
-				}
-			}
-		}
-		else
+		case InputMode::UNITE_COMPOSITES:
 		{
-			mouse_position = sf::Mouse::getPosition(scene_window);
+			// unite two composites.
+			std::pair<Figure*, Figure*> clicked_figure = m_sceneController->getIntersection(getMouseWorldPosition());
+			Figure* second_of_union = clicked_figure.first;
+			if (second_of_union == nullptr)
+			{
+				break;
+			}
+			if (first_of_union == nullptr)
+			{
+				first_of_union = second_of_union;
+			}
+			else
+			{
+				m_sceneController->remove(first_of_union);
+				m_sceneController->remove(second_of_union);
+
+				Composite* composite = new Composite();
+				composite->add(first_of_union);
+				composite->add(second_of_union);
+				m_sceneController->add(composite);
+				first_of_union = nullptr;
+				changeMode(InputMode::EDIT_OBJECT);
+			}
+			break;
+		}
+		default:
+			break;
 		}
 		break;
 	case MouseButtonReleased:
+		switch (m_mode)
+		{
+		case InputMode::MAIN:
+		{
+			// Select composite.
+			std::pair<Figure*, Figure*> clicked_figure = m_sceneController->getIntersection(getMouseWorldPosition());
+			Figure* composite = clicked_figure.first;
+			Figure* primitive = clicked_figure.second;
+			if (composite == nullptr)
+			{
+				break;
+			}
+			m_construct_composite = composite;
+			setActive(composite);
+			changeMode(InputMode::EDIT_OBJECT);
+			break;
+		}
+		case InputMode::EDIT_OBJECT:
+		{
+			// Select primitive.
+			if (m_active_figure != m_construct_composite ||
+				m_active_composite_modified)
+			{
+				break;
+			}
+			std::pair<Figure*, Figure*> clicked_figure = m_sceneController->getIntersection(getMouseWorldPosition());
+			Figure* composite = clicked_figure.first;
+			Figure* primitive = clicked_figure.second;
+			if (primitive == nullptr)
+			{
+				break;
+			}
+			setActive(primitive);
+			changeMode(InputMode::EDIT_OBJECT);
+			break;
+		}
+		default:
+			break;
+		}
 		handleObjectManipulation();
 		active_manipulating_object = ObjectManipulation::NONE;
+		m_mouse_pressed_in_window = false;
+		m_active_composite_modified = false;
 		break;
 	default:
 		break;
@@ -200,14 +260,19 @@ void Program::handleInput(sf::Event event)
 
 void Program::OnKeyboardPress(sf::Event::KeyEvent key)
 {
-	switch (mode)
+	switch (m_mode)
 	{
 	case InputMode::MAIN:
 		switch (key.code)
 		{
 			// Construct new composite
 		case sf::Keyboard::A:
-			changeMode(InputMode::ADD_FIGURE);
+			changeMode(InputMode::VIEW_PROTOTYPES);
+			selectPrototype();
+			break;
+		case sf::Keyboard::P:
+			changeMode(InputMode::VIEW_PROTOTYPES);
+			selectPrototype();
 			break;
 		case sf::Keyboard::U:
 			changeMode(InputMode::UNITE_COMPOSITES);
@@ -229,7 +294,7 @@ void Program::OnKeyboardPress(sf::Event::KeyEvent key)
 		{
 			new_figure = new Circle();
 			break;
-		}/////////////////////////////////////////////////////////////////////
+		}
 		 // Triangle
 		case sf::Keyboard::T:
 			new_figure = new Triangle();
@@ -242,7 +307,7 @@ void Program::OnKeyboardPress(sf::Event::KeyEvent key)
 		}
 		// Cancel adding primitive
 		case sf::Keyboard::Escape:
-			changeMode(InputMode::EDIT_OBJECT);
+			changeMode(m_construct_composite == nullptr ? InputMode::MAIN : InputMode::EDIT_OBJECT);
 			break;
 		default:
 			break;
@@ -289,6 +354,11 @@ void Program::OnKeyboardPress(sf::Event::KeyEvent key)
 		}
 		break;
 		case sf::Keyboard::P:
+		{
+			createPrototype();
+			break;
+		}
+		case sf::Keyboard::L:
 			m_active_figure->changeMovement();
 			break;
 		case sf::Keyboard::T:
@@ -302,7 +372,8 @@ void Program::OnKeyboardPress(sf::Event::KeyEvent key)
 			break;
 		case sf::Keyboard::A:
 			m_active_figure == m_construct_composite;
-			changeMode(InputMode::ADD_FIGURE);
+			changeMode(InputMode::VIEW_PROTOTYPES);
+			selectPrototype();
 			break;
 			// Scale object
 		case sf::Keyboard::S:
@@ -331,24 +402,26 @@ void Program::OnKeyboardPress(sf::Event::KeyEvent key)
 			m_active_figure->changeMovement();
 			break;
 		case sf::Keyboard::Escape:
+			object_manipulation_type = ObjectManipulation::NONE;
 			if (object_manipulation_type == ObjectManipulation::COLORING)
 				m_active_figure->setActive(true);
 			if (m_construct_composite == m_active_figure)
 			{
 				m_construct_composite = nullptr;
 				setActive(nullptr);
+				changeMode(InputMode::MAIN);
 			}
 			else
 			{
-				m_active_figure = m_construct_composite;
+				setActive(m_construct_composite);
+				updateModeHint(m_mode);
 			}
-			changeMode(InputMode::EDIT_OBJECT);
 			break;
 		default:
 			break;
 		}
+		break;
 	}
-	break;
 	case InputMode::UNITE_COMPOSITES:
 		if (key.code == sf::Keyboard::Escape)
 			changeMode(InputMode::MAIN);
@@ -357,6 +430,17 @@ void Program::OnKeyboardPress(sf::Event::KeyEvent key)
 		if (key.code == sf::Keyboard::Escape)
 			changeMode(InputMode::EDIT_OBJECT);
 		break;
+	case InputMode::VIEW_PROTOTYPES:
+		//if(key.code >= sf::Keyboard::Num1)
+		switch (key.code)
+		{
+		case sf::Keyboard::Escape:
+			changeMode(InputMode::MAIN);
+			break;
+		default:
+			break;
+		}
+		break;
 	default:
 		break;
 	}
@@ -364,11 +448,29 @@ void Program::OnKeyboardPress(sf::Event::KeyEvent key)
 
 void Program::changeMode(InputMode _mode)
 {
+	m_mode = _mode;
+	updateModeHint(m_mode);
+}
+
+
+
+void Program::setActive(Figure* figure)
+{
+	if (m_active_figure != nullptr)
+		m_active_figure->setActive(false);
+	m_active_figure = figure;
+	if (m_active_figure != nullptr)
+		m_active_figure->setActive(true);
+}
+
+void Program::updateModeHint(InputMode m_mode)
+{
 	system("cls");
-	switch (_mode)
+	switch (m_mode)
 	{
 	case InputMode::MAIN:
 		std::cout << "(A) Add composite" << '\n';
+		std::cout << "(P) View prototype collection" << '\n';
 		std::cout << "(U) Unity with another composite" << '\n';
 		break;
 	case InputMode::ADD_FIGURE:
@@ -378,7 +480,9 @@ void Program::changeMode(InputMode _mode)
 		std::cout << "(R) Rectangle" << '\n';
 		break;
 	case InputMode::EDIT_OBJECT:
-		system("cls");
+		std::cout << (m_active_figure == m_construct_composite ?
+			"Composite " : "Primitive") << " selected.\n";
+		//system("cls");
 		std::cout << "(Esc) Finish composition creation" << '\n';
 		std::cout << "(Delete) Delete composite" << '\n';
 		std::cout << "(A) Add another primitive" << '\n';
@@ -386,37 +490,81 @@ void Program::changeMode(InputMode _mode)
 		std::cout << "(R) Rotate" << '\n';
 		std::cout << "(S) Scale" << '\n';
 		std::cout << "(V) Change visibility" << '\n';
+		std::cout << "(T) Change tail visibility" << '\n';
+		std::cout << "(O) Move automatically" << '\n';
+		std::cout << "(C) Change to default" << '\n';
+		std::cout << "(L) Move object automatically" << '\n';
 		if (m_active_figure != m_construct_composite)
 		{
 			std::cout << "(H) Change color" << '\n';
 		}
-		std::cout << "(T) Change tail visibility" << '\n';
-		std::cout << "(O) Move automatically" << '\n';
-		std::cout << "(C) Change to default" << '\n';
-		std::cout << "(P) Move object automatically" << '\n';
+		else
+		{
+			std::cout << "(P) Add to prototype collection" << '\n';
+		}
 		break;
 	case InputMode::EXPAND_COMPOSITE:
-		system("cls");
+		//system("cls");
 		std::cout << "(Esc) Cancle" << '\n';
 		std::cout << "Click on the composite you want to add to new composite." << '\n';
 		break;
 	case InputMode::UNITE_COMPOSITES:
-		system("cls");
+		//system("cls");
 		std::cout << "(Esc) Cancle" << '\n';
 		std::cout << "Click on two composites you want to unite." << '\n';
 		break;
+	case InputMode::VIEW_PROTOTYPES:
+	{
+		int i = 1;
+		for (auto name : m_prototype_names)
+		{
+			std::cout << i++ << ". " << name << '\n';
+		}
+		break;
+	}
 	default:
 		break;
 	}
-	mode = _mode;
 }
 
-void Program::setActive(Figure* figure)
+void Program::createPrototype()
 {
-	if (m_active_figure != nullptr)
-		m_active_figure->setActive(false);
-	m_active_figure = figure;
-	if (m_active_figure != nullptr)
-		m_active_figure->setActive(true);
+	system("cls");
+	std::cout << "Enter prototype name (leave empty to cancel): ";
+	std::string prototype_name;
+	std::getline(std::cin, prototype_name);
+	if (!prototype_name.empty())
+	{
+		m_prototypes.insert({ prototype_name, m_active_figure->clone() });
+		m_prototype_names.push_back(prototype_name);
+	}
+	updateModeHint(m_mode);
+}
+
+void Program::selectPrototype()
+{
+	std::cout << "Select prototype number (leave empty to cancel): ";
+	int index = 0;
+	std::string input;
+	std::getline(std::cin, input);
+	if (!input.empty())
+	{
+		index = atoi(input.c_str());
+		if (index > 0 && index <= m_prototype_names.size())
+		{
+			std::string prototype_name = *std::next(m_prototype_names.begin(), index - 1);
+			Figure* new_figure = (Figure*)m_prototypes[prototype_name]->clone();
+			if (m_construct_composite == nullptr)
+			{
+				m_sceneController->add(new_figure);
+			}
+			else
+			{
+				m_construct_composite->add(new_figure);
+			}
+		}
+	}
+	changeMode(InputMode::MAIN);
+	updateModeHint(m_mode);
 }
 

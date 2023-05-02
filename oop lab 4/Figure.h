@@ -1,4 +1,6 @@
 #pragma once
+#include "Prototype.h"
+
 #include <SFML/Graphics.hpp>
 
 #ifdef FRAME_LIMIT
@@ -7,7 +9,9 @@
 	#define ACTIVE_OBJECT_PULSE_TIME 60
 #endif // FRAME_LIMIT
 
-class Figure : public sf::Drawable
+class Figure :
+	public sf::Drawable,
+	public Prototype
 {
 public:
 	virtual ~Figure() {};
@@ -58,7 +62,7 @@ public:
 
 	virtual void setActive(bool active) = 0;
 
-	virtual Figure* TurnToComposite(Figure* figure) = 0;
+	//virtual Figure* TurnToComposite(Figure* figure) = 0;
 
 	virtual std::pair<Figure*, Figure*> getIntersection(const sf::Vector2f& position);;
 
@@ -74,9 +78,16 @@ public:
 
 	virtual size_t getSize();
 
+	virtual const sf::Transform& getTransform() const = 0;
+
+	virtual const Figure* getParent() const;
+
+	virtual void setParent(Figure* parent);
+
 	virtual const Figure* getChild(size_t index) const;
 
 protected:
+	Figure* m_parent = nullptr;
 	bool m_active = false;
 	static sf::BlendMode pulse_state;
 	static int pulse;

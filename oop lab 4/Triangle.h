@@ -11,6 +11,8 @@ public:
 
 	Triangle(const Triangle& obj);
 
+	Prototype* clone();
+
 	void reset() override;
 };
 

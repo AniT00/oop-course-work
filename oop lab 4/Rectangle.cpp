@@ -20,6 +20,11 @@ Rectangle::Rectangle(const Rectangle& obj)
 	m_trail = obj.m_trail;
 }
 
+Prototype* Rectangle::clone()
+{
+    return (Prototype*)new Rectangle(*this);
+}
+
 void Rectangle::reset()
 {
 	*m_shape = sf::RectangleShape(sf::Vector2f(200, 100));

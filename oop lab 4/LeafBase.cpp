@@ -3,7 +3,17 @@
 void LeafBase::move(const sf::Vector2f& offset)
 {
     rememberTransform();
-    m_shape->move(offset);
+	
+	if (m_parent != nullptr)
+	{
+		m_shape->getPosition();
+		sf::Transform n = m_shape->getTransform() * m_parent->getTransform().getInverse();
+		sf::Vector2f m = n.transformPoint(offset);
+		// TODO check if statement necessity
+		// fix this
+		m_shape->move(m);
+	}
+    
 }
 
 void LeafBase::rememberTransform()
@@ -39,10 +49,10 @@ void LeafBase::setActive(bool active)
     m_active = active;
 }
 
-Figure* LeafBase::TurnToComposite(Figure* figure)
-{
-    return nullptr;
-}
+//Figure* LeafBase::TurnToComposite(Figure* figure)
+//{
+//    return nullptr;
+//}
 
 std::pair<Figure*, Figure*> LeafBase::getIntersection(const sf::Vector2f& position)
 {
@@ -53,6 +63,11 @@ std::pair<Figure*, Figure*> LeafBase::getIntersection(const sf::Vector2f& positi
         return { nullptr, this };
     }
     return { nullptr, nullptr };
+}
+
+void LeafBase::setPosition(float x, float y)
+{
+    m_shape->setPosition(x, y);
 }
 
 sf::Vector2f LeafBase::getPosition()
@@ -87,6 +102,11 @@ void LeafBase::setTail(bool enabled)
 void LeafBase::setColor(sf::Color color)
 {
     m_shape->setFillColor(color);
+}
+
+const sf::Transform& LeafBase::getTransform() const
+{
+	return m_shape->getTransform();
 }
 
 void LeafBase::draw(sf::RenderTarget& target, sf::RenderStates states) const

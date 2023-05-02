@@ -18,6 +18,16 @@ size_t Figure::getSize()
 	throw std::exception("Leaf has no collection.");
 }
 
+const Figure* Figure::getParent() const
+{
+    return m_parent;
+}
+
+void Figure::setParent(Figure* parent)
+{
+    m_parent = parent;
+}
+
 const Figure* Figure::getChild(size_t index) const
 {
 	throw std::exception("Leaf has no childs.");

@@ -22,6 +22,11 @@ Triangle::Triangle(const Triangle& obj)
 	m_trail = obj.m_trail;
 }
 
+Prototype* Triangle::clone()
+{
+    return (Prototype*)new Triangle(*this);
+}
+
 void Triangle::reset()
 {
 	*m_shape = sf::CircleShape(50);
