@@ -9,6 +9,12 @@
 	#define ACTIVE_OBJECT_PULSE_TIME 60
 #endif // FRAME_LIMIT
 
+class Figure;
+
+std::ostream& operator<< (std::ostream& os, const Figure& obj);
+
+std::istream& operator>> (std::istream& is, Figure& obj);
+
 class Figure :
 	public sf::Drawable,
 	public Prototype
@@ -78,6 +84,12 @@ public:
 
 	virtual size_t getSize();
 
+	virtual const sf::Vector2f& getPosition() const = 0;
+
+	virtual const sf::Vector2f& getScale() const = 0;
+
+	virtual float getRotation() const = 0;
+
 	virtual const sf::Transform& getTransform() const = 0;
 
 	virtual const Figure* getParent() const;
@@ -86,7 +98,15 @@ public:
 
 	virtual const Figure* getChild(size_t index) const;
 
+	friend std::ostream& operator<< (std::ostream& os, const Figure& obj);
+
+	friend std::istream& operator>> (std::istream& is, Figure& obj);
+
 protected:
+	virtual std::ostream& write(std::ostream& os) const = 0;
+	
+	virtual std::istream& read(std::istream& is) = 0;
+
 	Figure* m_parent = nullptr;
 	bool m_active = false;
 	static sf::BlendMode pulse_state;

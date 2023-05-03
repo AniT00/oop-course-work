@@ -49,7 +49,7 @@ void Program::run()
 Program::~Program()
 {
 	delete m_sceneController;
-	for (auto elem : m_prototypes)
+	for (auto& elem : m_prototypes)
 	{
 		delete elem.second;
 	}
@@ -269,13 +269,23 @@ void Program::OnKeyboardPress(sf::Event::KeyEvent key)
 		case sf::Keyboard::A:
 			changeMode(InputMode::VIEW_PROTOTYPES);
 			selectPrototype();
+			changeMode(InputMode::MAIN);
 			break;
 		case sf::Keyboard::P:
 			changeMode(InputMode::VIEW_PROTOTYPES);
 			selectPrototype();
+			changeMode(InputMode::MAIN);
 			break;
 		case sf::Keyboard::U:
 			changeMode(InputMode::UNITE_COMPOSITES);
+			break;
+		case sf::Keyboard::S:
+			saveScene();
+			updateModeHint(m_mode);
+			break;
+		case sf::Keyboard::L:
+			loadScene();
+			updateModeHint(m_mode);
 			break;
 		default:
 			break;
@@ -389,6 +399,10 @@ void Program::OnKeyboardPress(sf::Event::KeyEvent key)
 			break;
 		case sf::Keyboard::H:
 		{
+			if(m_active_figure == m_construct_composite)
+			{
+				break;
+			}
 			// TODO
 			object_manipulation_type = ObjectManipulation::COLORING;
 			system("cls");
@@ -472,6 +486,8 @@ void Program::updateModeHint(InputMode m_mode)
 		std::cout << "(A) Add composite" << '\n';
 		std::cout << "(P) View prototype collection" << '\n';
 		std::cout << "(U) Unity with another composite" << '\n';
+		std::cout << "(S) Save scene" << '\n';
+		std::cout << "(L) Load scene" << '\n';
 		break;
 	case InputMode::ADD_FIGURE:
 		std::cout << "(E) Existing (choose on the screen)" << '\n';
@@ -516,9 +532,9 @@ void Program::updateModeHint(InputMode m_mode)
 	case InputMode::VIEW_PROTOTYPES:
 	{
 		int i = 1;
-		for (auto name : m_prototype_names)
+		for (auto& m_name : m_prototype_names)
 		{
-			std::cout << i++ << ". " << name << '\n';
+			std::cout << i++ << ". " << m_name << '\n';
 		}
 		break;
 	}
@@ -564,7 +580,77 @@ void Program::selectPrototype()
 			}
 		}
 	}
-	changeMode(InputMode::MAIN);
-	updateModeHint(m_mode);
+	
+}
+
+void Program::saveScene()
+{
+	std::string file_name;
+	while (true)
+	{
+		system("cls");
+		std::cout << "Enter file name (witout extension) (leave empty to cancel): ";
+		std::getline(std::cin, file_name);
+		file_name += ".scene";
+		if (file_name.empty())
+		{
+			return;
+		}
+		std::fstream file(file_name, std::ios_base::in);
+		// If file exists, confirm overwriting.
+		if (file.fail())
+		{
+			break;
+		}
+		std::string inp;
+		bool overwrite = false;
+		while (true)
+		{
+			std::cout << "\nFile already exists. Do you want to overwrite file? (y/n): ";
+			std::getline(std::cin, inp);
+			if (inp.compare("y") == 0 || inp.compare("Y") == 0)
+			{
+				overwrite = true;
+				break;
+			}
+			if (inp.compare("n") == 0 || inp.compare("N") == 0)
+			{
+				break;
+			}
+		}
+		if (overwrite)
+		{
+			break;
+		}
+	}
+	std::ofstream scene_file(file_name, std::ios_base::binary | std::ios_base::trunc);
+	SceneController::Snapshot snapshot = m_sceneController->save();
+	scene_file << snapshot;
+}
+
+void Program::loadScene()
+{
+	system("cls");
+	std::string file_name;
+	while (true)
+	{
+		std::cout << "Enter file name (witout extension) (leave empty to cancel): ";
+		std::getline(std::cin, file_name);
+		file_name += ".scene";
+		if (file_name.empty())
+		{
+			return;
+		}
+		std::fstream file(file_name, std::ios_base::in);
+		if (file.good())
+		{
+			break;
+		}
+		system("cls");
+		std::cout << "\nFile does not exists.\n";
+	}
+	std::ifstream scene_file(file_name, std::ios_base::binary);
+	SceneController::Snapshot snapshot(scene_file);
+	m_sceneController->restore(snapshot);
 }
 

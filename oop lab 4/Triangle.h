@@ -1,8 +1,7 @@
 #pragma once
 #include "LeafBase.h"
 
-class Triangle :
-    public LeafBase
+class Triangle : public LeafBase
 {
 public:
 	Triangle();
@@ -11,8 +10,12 @@ public:
 
 	Triangle(const Triangle& obj);
 
-	Prototype* clone();
+	Prototype* clone() override;
 
 	void reset() override;
+
+	std::ostream& write(std::ostream& os) const override;
+
+	//std::istream& read(std::istream& is) override;
 };
 

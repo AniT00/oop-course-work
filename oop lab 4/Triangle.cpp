@@ -1,5 +1,7 @@
 #include "Triangle.h"
 
+#include <iostream>
+
 Triangle::Triangle()
 {
 	m_shape = new sf::CircleShape(50);
@@ -36,3 +38,25 @@ void Triangle::reset()
 	m_prev_positions.clear();
 
 }
+
+std::ostream& Triangle::write(std::ostream& os) const
+{
+	const char* m_name = "Triangle";
+	os.write(m_name, sizeof(m_name));
+	os << '\0';
+	const sf::Color& color = m_shape->getFillColor();
+	os.write((char*)&color, sizeof(sf::Color));
+	const float* transform_matrix = m_shape->getTransform().getMatrix();
+	os.write((char*)transform_matrix, 16 * sizeof(float));
+	return os;
+}
+
+//std::istream& Triangle::read(std::istream& is)
+//{
+//	sf::Color color;
+//	is.read((char*)&color, sizeof(sf::Color));
+//	m_shape->setFillColor(color);
+//	float transform_matrix[16];
+//	is.read((char*)&transform_matrix, 16 * sizeof(float));
+//	return is;
+//}

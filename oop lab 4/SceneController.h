@@ -6,6 +6,8 @@
 #include <iostream>
 #include <list>
 
+
+
 class SceneController
 {
 protected:
@@ -18,6 +20,31 @@ protected:
 
 
 public:
+	class Snapshot
+	{
+	private:
+		std::list<Figure*> m_figures;
+	public:
+		Snapshot(std::istream& file);
+
+		Snapshot(std::list<Figure*> figures);
+
+		const std::list<Figure*>& getFigures() const;
+
+		friend std::ostream& operator<<(std::ostream& os, const Snapshot& obj)
+		{
+			for (auto figure : obj.m_figures)
+			{
+				os << *figure << '\n';
+			}
+			return os;
+		}
+	};
+
+	Snapshot save();
+
+	void restore(const Snapshot& snapshot);
+
 	void add(Figure* figure);
 
 	bool remove(Figure* figure);
@@ -34,8 +61,6 @@ public:
 	/// <returns></returns>
 	std::pair<Figure*, Figure*> getIntersection(const sf::Vector2f& position);
 
-	Figure* getActiveFigure();
-
 	SceneController(SceneController& other) = delete;
 
 	void operator=(const SceneController&) = delete;
@@ -48,10 +73,6 @@ private:
 	std::list<Figure*> m_figures;
 
 	sf::RenderWindow* windowTarget;
-
-	Figure* m_current_figure = nullptr;
-
-	Figure* m_new_composite = nullptr;
 };
 
 

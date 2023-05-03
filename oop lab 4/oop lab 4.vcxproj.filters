@@ -30,9 +30,6 @@
     <ClCompile Include="Composite.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="Rectangle.cpp">
-      <Filter>Исходные файлы</Filter>
-    </ClCompile>
     <ClCompile Include="Program.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
@@ -42,13 +39,16 @@
     <ClCompile Include="Circle.cpp">
       <Filter>Исходные файлы\Figures</Filter>
     </ClCompile>
-    <ClCompile Include="Figure.cpp">
-      <Filter>Исходные файлы\Figures</Filter>
-    </ClCompile>
     <ClCompile Include="Triangle.cpp">
       <Filter>Исходные файлы\Figures</Filter>
     </ClCompile>
     <ClCompile Include="Prototype.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="Rectangle.cpp">
+      <Filter>Исходные файлы\Figures</Filter>
+    </ClCompile>
+    <ClCompile Include="Figure.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
   </ItemGroup>

@@ -1,13 +1,14 @@
 #include "LeafBase.h"
 
+#include <iostream>
+
 void LeafBase::move(const sf::Vector2f& offset)
 {
     rememberTransform();
 	
 	if (m_parent != nullptr)
 	{
-		m_shape->getPosition();
-		sf::Transform n = m_shape->getTransform() * m_parent->getTransform().getInverse();
+		sf::Transform n = sf::Transform().rotate(-m_parent->getRotation());
 		sf::Vector2f m = n.transformPoint(offset);
 		// TODO check if statement necessity
 		// fix this
@@ -104,6 +105,21 @@ void LeafBase::setColor(sf::Color color)
     m_shape->setFillColor(color);
 }
 
+const sf::Vector2f& LeafBase::getPosition() const
+{
+	return m_shape->getPosition();
+}
+
+const sf::Vector2f& LeafBase::getScale() const
+{
+	return m_shape->getScale();
+}
+
+float LeafBase::getRotation() const
+{
+	return m_shape->getRotation();
+}
+
 const sf::Transform& LeafBase::getTransform() const
 {
 	return m_shape->getTransform();
@@ -161,4 +177,26 @@ void LeafBase::draw(sf::RenderTarget& target, sf::RenderStates states) const
 LeafBase::~LeafBase()
 {
     delete m_shape;
+}
+
+//std::ostream& LeafBase::write(std::ostream& os) const
+//{
+//	const char* name = getName();
+//	os.write(name, strlen(name) + 1);
+//	const sf::Color& color = m_shape->getFillColor();
+//	os.write((char*)&color, sizeof(sf::Color));
+//	const float* transform_matrix = m_shape->getTransform().getMatrix();
+//	os.write((char*)transform_matrix, 16 * sizeof(float));
+//	return os;
+//}
+//
+std::istream& LeafBase::read(std::istream& is)
+{
+	sf::Color color;
+	is.read((char*)&color, sizeof(sf::Color));
+	m_shape->setFillColor(color);
+	float transform_matrix[16];
+	is.read((char*)&transform_matrix, 16 * sizeof(float));
+	// TODO matrix to transform.
+	return is;
 }

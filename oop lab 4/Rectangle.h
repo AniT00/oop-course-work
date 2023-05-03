@@ -1,8 +1,6 @@
 #pragma once
 #include "LeafBase.h"
 
-#include <SFML/Graphics.hpp>
-
 class Rectangle : public LeafBase
 {
 public:
@@ -12,8 +10,12 @@ public:
 
 	Rectangle(const Rectangle& obj);
 
-	Prototype* clone();
+	Prototype* clone() override;
 
 	void reset() override;
+
+	std::ostream& write(std::ostream& os) const override;
+
+	//std::istream& read(std::istream& is) override;
 };
 

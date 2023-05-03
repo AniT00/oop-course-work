@@ -1,4 +1,9 @@
 #include "Composite.h"
+#include "Circle.h"
+#include "Rectangle.h"
+#include "Triangle.h"
+
+#include <iostream>
 
 Composite::Composite()
 { }
@@ -16,7 +21,7 @@ Composite::Composite(const Composite& obj)
     {
         add((Figure*)figure->clone());
     }
-	m_transform = obj.m_transform;
+	t = obj.t;
     /*m_scale = obj.m_scale;
     m_size = obj.m_size;
     m_position = obj.m_position;*/
@@ -60,11 +65,6 @@ void Composite::setOriginByAverage()
 	m_position = average;
 }
 
-void Composite::move(const sf::Vector2f& offset)
-{
-	m_transform.translate(offset);
-}
-
 //Figure* Composite::TurnToComposite(Figure* figure)
 //{
 //	for (auto elem : m_composition)
@@ -85,6 +85,11 @@ void Composite::move(const sf::Vector2f& offset)
 //	return nullptr;
 //}
 
+void Composite::move(const sf::Vector2f& offset)
+{
+	t.move(offset);
+}
+
 void Composite::reset()
 {
 	m_composition.clear();
@@ -93,12 +98,12 @@ void Composite::reset()
 
 void Composite::rotate(float degree)
 {
-	m_transform.rotate(degree);
+	t.rotate(degree);
 }
 
 void Composite::scale(const sf::Vector2f& absolute_value, sf::Vector2f centre)
 {
-	m_transform.scale(
+	t.scale(
 		1.f + absolute_value.x / (abs(m_scale.x) * 100),
 		1.f + absolute_value.y / (abs(m_scale.y) * 100)
 	);
@@ -140,7 +145,8 @@ std::pair<Figure*, Figure*> Composite::getIntersection(const sf::Vector2f& posit
 {
 	if (m_composition.size() == 0) { throw std::exception("Composition is empty"); }
 	
-	auto p = sf::Transform().translate(m_position).rotate(m_rotation).getInverse().transformPoint(position);
+	auto p = t.getInverseTransform().transformPoint(position);
+	//auto p = sf::Transform().translate(m_position).rotate(m_rotation).getInverse().transformPoint(position);
 	for (auto it = m_composition.rbegin(); it != m_composition.rend(); it++)
 	{
 		std::pair<Figure*, Figure*> intersected = (*it)->getIntersection(p);
@@ -186,7 +192,8 @@ void Composite::draw(sf::RenderTarget& target, sf::RenderStates states) const
 		states.blendMode = pulse_state;
 	}
 	//states.transform.combine(m_transform);
-	states.transform = states.transform.combine(m_transform);
+	
+	states.transform = states.transform.combine(t.getTransform());
 	//states.transform.translate(m_position);
 	//states.transform.scale(m_scale);
 	//states.transform.rotate(m_rotation);
@@ -225,6 +232,26 @@ void Composite::setColor(sf::Color color)
 	}
 }
 
+const sf::Vector2f& Composite::getPosition() const
+{
+	return t.getPosition();
+}
+
+const sf::Vector2f& Composite::getScale() const
+{
+	return t.getScale();
+}
+
+float Composite::getRotation() const
+{
+	return t.getRotation();
+}
+
+const sf::Transform& Composite::getTransform() const
+{
+	return t.getTransform();
+}
+
 size_t Composite::getSize()
 {
 	return m_composition.size();
@@ -236,4 +263,44 @@ Composite::~Composite()
 	{
 		delete* it;
 	}
+}
+
+std::ostream& Composite::write(std::ostream& os) const
+{
+	os.write((char*)this->t.getTransform().getMatrix(), 16 * sizeof(float));
+	for (auto elem : m_composition)
+	{
+		os << *elem;
+	}
+	return os;
+}
+
+std::istream& Composite::read(std::istream& is)
+{
+	float transform_matrix[16];
+	is.read((char*)transform_matrix, 16);
+	//sf::Transformable t(sf::Transform())
+	
+	Figure* figure = nullptr;
+	std::string type;
+	getline(is, type, '\0');
+	if (type.compare("Circle") == 0)
+	{
+		figure = new Circle();
+	}
+	else if (type.compare("Triangle") == 0)
+	{
+		figure = new Triangle();
+	}
+	else if (type.compare("Rectangle") == 0)
+	{
+		figure = new Rectangle();
+	}
+	if (figure == nullptr)
+	{
+		throw std::exception("Invalid file data. Specified class not found.");
+	}
+	add(figure);
+	is >> *figure;
+	return is;
 }

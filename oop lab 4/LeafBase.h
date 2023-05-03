@@ -34,6 +34,12 @@ public:
 
 	void setColor(sf::Color color) override;
 
+	const sf::Vector2f& getPosition() const override;
+
+	const sf::Vector2f& getScale() const override;
+
+	float getRotation() const override;
+
 	const sf::Transform& getTransform() const;
 
 	void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
@@ -41,6 +47,10 @@ public:
 	~LeafBase();
 
 protected:
+	//std::ostream& write(std::ostream& os) const override;
+
+	std::istream& read(std::istream& is) override;
+
 	std::list<sf::Transform> m_prev_positions;
 	sf::Shape* m_shape;
 	int m_trail;

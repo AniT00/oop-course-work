@@ -3,6 +3,20 @@
 SceneController* SceneController::Controller_ = nullptr;
 
 
+SceneController::Snapshot SceneController::save()
+{
+	return Snapshot(m_figures);
+}
+
+void SceneController::restore(const Snapshot& snapshot)
+{
+	m_figures.clear();
+	for (auto figure : snapshot.getFigures())
+	{
+		m_figures.push_back((Figure*)figure->clone());
+	}
+}
+
 void SceneController::add(Figure* figure)
 {
 	m_figures.push_back(figure);
@@ -44,11 +58,6 @@ std::pair<Figure*, Figure*> SceneController::getIntersection(const sf::Vector2f&
 	return { nullptr, nullptr };
 }
 
-Figure* SceneController::getActiveFigure()
-{
-    return m_current_figure;
-}
-
 SceneController* SceneController::GetInstance(sf::RenderWindow* window)
 {
 	if (Controller_ == nullptr)
@@ -64,4 +73,31 @@ SceneController::~SceneController()
 	{
 		delete* it;
 	}
+}
+
+SceneController::Snapshot::Snapshot(std::istream& file)
+{
+	while (!file.eof())
+	{
+		int c = file.peek();
+		std::cout << file.tellg() << std::endl;
+		Composite* composite = new Composite();
+		m_figures.push_back(composite);
+		file >> *composite;
+		std::cout << file.tellg() << std::endl;
+		file.get();
+	}
+}
+
+SceneController::Snapshot::Snapshot(std::list<Figure*> figures)
+{
+	for (auto figure : figures)
+	{
+		m_figures.push_back((Figure*)figure->clone());
+	}
+}
+
+const std::list<Figure*>& SceneController::Snapshot::getFigures() const
+{
+	return m_figures;
 }

@@ -1,8 +1,6 @@
 #pragma once
 #include "LeafBase.h"
 
-#include <SFML/Graphics.hpp>
-
 class Circle : public LeafBase
 {
 public:
@@ -15,5 +13,9 @@ public:
 	Prototype* clone() override;
 
 	void reset() override;
+
+	std::ostream& write(std::ostream& os) const override;
+
+	//std::istream& read(std::istream& is) override;
 };
 

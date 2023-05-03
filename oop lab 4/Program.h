@@ -10,6 +10,7 @@
 #include <SFML/Graphics.hpp>
 #include <iostream>
 #include <unordered_map>
+#include <fstream>
 
 #define SCENE_WINDOW_WIDTH	720
 #define SCENE_WINDOW_HEIGHT	480
@@ -65,6 +66,10 @@ private:
 	void createPrototype();
 
 	void selectPrototype();
+
+	void saveScene();
+
+	void loadScene();
 
 	sf::Vector2f getMouseWorldPosition()
 	{

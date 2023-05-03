@@ -1,5 +1,7 @@
 #include "Figure.h"
 
+#include <iostream>
+
 sf::BlendMode Figure::pulse_state = sf::BlendMode();
 int Figure::pulse = 0;
 
@@ -57,3 +59,14 @@ bool Figure::getVisible(bool) const
 {
 	return m_visible;
 }
+
+std::ostream& operator<<(std::ostream& os, const Figure& obj)
+{
+	return obj.write(os);
+}
+
+std::istream& operator>> (std::istream& is, Figure& obj)
+{
+	
+	return obj.read(is);
+};
