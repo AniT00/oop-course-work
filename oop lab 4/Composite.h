@@ -1,5 +1,6 @@
 #pragma once
 #include "Figure.h"
+#include "FigureFactory.h"
 
 #include <list>
 
@@ -14,6 +15,8 @@ public:
 
 	Prototype* clone() override;
 
+	static Figure* create();
+
 	void add(Figure* obj) override;
 
 	bool remove(Figure* figure) override;
@@ -22,21 +25,15 @@ public:
 
 	void move(const sf::Vector2f& offset) override;
 
-	//Figure* TurnToComposite(Figure* figure) override;
-
 	void reset() override;
 
 	void rotate(float degree) override;
 
 	void scale(const sf::Vector2f& absolute_value, sf::Vector2f centre = sf::Vector2f()) override;
 
-	sf::Vector2f getPosition() override;
-
 	virtual const sf::Shape& getShape() const;
 
 	virtual sf::Shape& getShape();
-
-	void setPosition(float x, float y) override;
 
 	std::pair<Figure*, Figure*> getIntersection(const sf::Vector2f& position) override;
 
@@ -54,13 +51,21 @@ public:
 
 	const sf::Vector2f& getPosition() const override;
 
+	void setPosition(float x, float y) override;
+
 	const sf::Vector2f& getScale() const override;
 
+	void setScale(float x, float y) override;
+
 	float getRotation() const override;
+
+	void setRotation(float angle) override;
 
 	const sf::Transform& getTransform() const override;
 
 	size_t getSize() override;
+
+	static void setPrimitiveFactory(FigureFactory* factory);
 
 	~Composite();
 
@@ -69,13 +74,18 @@ private:
 
 	std::istream& read(std::istream& is) override;
 
+	const std::string& getName() const override;
+
+	static std::string m_type_name;
+
 	std::list<Figure*> m_composition;
 	//TODO
-	//sf::Transform m_transform;
 	sf::Vector2f m_scale = sf::Vector2f(1.f,1.f);
 	sf::Vector2f m_size = sf::Vector2f(1.f, 1.f);
 	sf::Vector2f m_position = sf::Vector2f(0.f, 0.f);
 	mutable sf::Transformable t;
+
+	static FigureFactory* m_primitiveFactory;
 
 	float m_rotation = 0;
 };

@@ -5,6 +5,10 @@
 
 #include <iostream>
 
+std::string Composite::m_type_name = "Composite";
+
+FigureFactory* Composite::m_primitiveFactory = nullptr;
+
 Composite::Composite()
 { }
 
@@ -30,6 +34,11 @@ Composite::Composite(const Composite& obj)
 Prototype* Composite::clone() 
 {
 	return (Prototype*)new Composite(*this);
+}
+
+Figure* Composite::create()
+{
+	return new Composite();
 }
 
 void Composite::add(Figure* obj)
@@ -65,26 +74,6 @@ void Composite::setOriginByAverage()
 	m_position = average;
 }
 
-//Figure* Composite::TurnToComposite(Figure* figure)
-//{
-//	for (auto elem : m_composition)
-//	{
-//		if (figure == elem)
-//		{
-//			auto f = elem;
-//			elem = new Composite(elem);
-//			f->getShape().setPosition(0, 0);
-//			return elem;
-//		}
-//		Figure* tmp = elem->TurnToComposite(figure);
-//		if (tmp)
-//		{
-//			return tmp;
-//		}
-//	}
-//	return nullptr;
-//}
-
 void Composite::move(const sf::Vector2f& offset)
 {
 	t.move(offset);
@@ -107,19 +96,6 @@ void Composite::scale(const sf::Vector2f& absolute_value, sf::Vector2f centre)
 		1.f + absolute_value.x / (abs(m_scale.x) * 100),
 		1.f + absolute_value.y / (abs(m_scale.y) * 100)
 	);
-	//m_scale.x *= 1.f + absolute_value.x / (abs(m_scale.x) * 100);
-	//m_scale.y *= 1.f + absolute_value.y / (abs(m_scale.y) * 100);
-
-	/////////////
-	/*for (auto it = m_composition.begin(); it != m_composition.end(); it++)
-	{
-		(*it)->scale(absolute_value, m_position);
-	}*/
-}
-
-sf::Vector2f Composite::getPosition()
-{
-	return m_position;
 }
 
 const sf::Shape& Composite::getShape() const
@@ -134,28 +110,17 @@ sf::Shape& Composite::getShape()
 
 }
 
-void Composite::setPosition(float x, float y)
-{
-	m_position.x = x;
-	m_position.y = y;
-}
-
-
 std::pair<Figure*, Figure*> Composite::getIntersection(const sf::Vector2f& position)
 {
 	if (m_composition.size() == 0) { throw std::exception("Composition is empty"); }
 	
 	auto p = t.getInverseTransform().transformPoint(position);
-	//auto p = sf::Transform().translate(m_position).rotate(m_rotation).getInverse().transformPoint(position);
 	for (auto it = m_composition.rbegin(); it != m_composition.rend(); it++)
 	{
 		std::pair<Figure*, Figure*> intersected = (*it)->getIntersection(p);
 		if (intersected.second != nullptr)
 		{
-			/*if (intersected.first)
-				return intersected;
-			else*/
-				return { this, intersected.second };
+			return { this, intersected.second };
 		}
 	}
 	return { nullptr, nullptr };
@@ -191,12 +156,9 @@ void Composite::draw(sf::RenderTarget& target, sf::RenderStates states) const
 		}
 		states.blendMode = pulse_state;
 	}
-	//states.transform.combine(m_transform);
 	
 	states.transform = states.transform.combine(t.getTransform());
-	//states.transform.translate(m_position);
-	//states.transform.scale(m_scale);
-	//states.transform.rotate(m_rotation);
+	
 	for (auto it = m_composition.begin(); it != m_composition.end(); it++)
 	{
 		(*it)->draw(target, states);
@@ -237,14 +199,29 @@ const sf::Vector2f& Composite::getPosition() const
 	return t.getPosition();
 }
 
+void Composite::setPosition(float x, float y)
+{
+	t.setPosition(x, y);
+}
+
 const sf::Vector2f& Composite::getScale() const
 {
 	return t.getScale();
 }
 
+void Composite::setScale(float x, float y)
+{
+	t.setScale(x, y);
+}
+
 float Composite::getRotation() const
 {
 	return t.getRotation();
+}
+
+void Composite::setRotation(float angle)
+{
+	t.setRotation(angle);
 }
 
 const sf::Transform& Composite::getTransform() const
@@ -257,6 +234,11 @@ size_t Composite::getSize()
 	return m_composition.size();
 }
 
+void Composite::setPrimitiveFactory(FigureFactory* factory)
+{
+	m_primitiveFactory = factory;
+}
+
 Composite::~Composite()
 {
 	for (auto it = m_composition.begin(); it != m_composition.end(); it++)
@@ -267,7 +249,18 @@ Composite::~Composite()
 
 std::ostream& Composite::write(std::ostream& os) const
 {
-	os.write((char*)this->t.getTransform().getMatrix(), 16 * sizeof(float));
+	os << '\n';
+	const std::string& name = getName();
+	os.write(name.c_str(), name.size());
+	os << '\n';
+
+	os.write((char*)&t.getPosition(), sizeof(sf::Vector2f));
+	float rotation = t.getRotation();
+	os.write((char*)&rotation, sizeof(float));
+	os.write((char*)&t.getScale(), sizeof(sf::Vector2f));
+	// Write a number of elements composite consist of.
+	size_t size = m_composition.size();
+	os.write((char*)&size, sizeof(size));
 	for (auto elem : m_composition)
 	{
 		os << *elem;
@@ -277,30 +270,50 @@ std::ostream& Composite::write(std::ostream& os) const
 
 std::istream& Composite::read(std::istream& is)
 {
-	float transform_matrix[16];
-	is.read((char*)transform_matrix, 16);
-	//sf::Transformable t(sf::Transform())
-	
-	Figure* figure = nullptr;
-	std::string type;
-	getline(is, type, '\0');
-	if (type.compare("Circle") == 0)
+	sf::Vector2f position;
+	is.read((char*)&position, sizeof(position));
+
+	float rotation = getRotation();
+	is.read((char*)&rotation, sizeof(rotation));
+
+	sf::Vector2f scale;
+	is.read((char*)&scale, sizeof(scale));
+
+	setPosition(position.x, position.y);
+	setRotation(rotation);
+	setScale(scale.x, scale.y);
+
+	size_t figure_count;
+	is.read((char*)&figure_count, sizeof(figure_count));
+	for (size_t i = 0; i < figure_count; i++)
 	{
-		figure = new Circle();
+		Figure* figure = nullptr;
+
+		is.ignore(1, '\n');
+		std::string type;
+		getline(is, type);
+		std::cout << is.tellg() << std::endl;
+		try
+		{
+			figure = m_primitiveFactory->create(type);
+		}
+		catch (const std::exception& e)
+		{
+			std::cout << "Error while reading. Wrong type string. The rest of the buffer:\n";
+			char c;
+			while (is >> c)
+			{
+				std::cout << std::hex << (int)c << ' ';
+			}
+			throw e;
+		}
+		add(figure);
+		is >> *figure;
 	}
-	else if (type.compare("Triangle") == 0)
-	{
-		figure = new Triangle();
-	}
-	else if (type.compare("Rectangle") == 0)
-	{
-		figure = new Rectangle();
-	}
-	if (figure == nullptr)
-	{
-		throw std::exception("Invalid file data. Specified class not found.");
-	}
-	add(figure);
-	is >> *figure;
 	return is;
+}
+
+const std::string& Composite::getName() const
+{
+	return m_type_name;
 }

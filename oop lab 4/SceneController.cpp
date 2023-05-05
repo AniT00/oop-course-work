@@ -1,5 +1,7 @@
 #include "SceneController.h"
 
+#include <limits>
+
 SceneController* SceneController::Controller_ = nullptr;
 
 
@@ -77,15 +79,15 @@ SceneController::~SceneController()
 
 SceneController::Snapshot::Snapshot(std::istream& file)
 {
-	while (!file.eof())
+	while (file.peek() != EOF)
 	{
-		int c = file.peek();
-		std::cout << file.tellg() << std::endl;
+		// Already know this will be composite. Skip type name.
+		file.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+		file.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 		Composite* composite = new Composite();
 		m_figures.push_back(composite);
 		file >> *composite;
-		std::cout << file.tellg() << std::endl;
-		file.get();
+		file.get(); // '\n'
 	}
 }
 

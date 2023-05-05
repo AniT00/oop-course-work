@@ -2,8 +2,11 @@
 
 #include <iostream>
 
+std::string Rectangle::m_type_name = "Rectangle";
+
 Rectangle::Rectangle()
 {
+	m_type_name = "Rectangle";
     m_shape = new sf::RectangleShape(sf::Vector2f(200, 100));
     m_shape->setFillColor(sf::Color::Yellow);
     m_shape->setPosition(0, 0);
@@ -12,12 +15,13 @@ Rectangle::Rectangle()
 
 Rectangle::Rectangle(sf::RectangleShape* rectangleShape)
 {
+	m_type_name = "Rectangle";
 	this->m_shape = rectangleShape;
 }
 
 Rectangle::Rectangle(const Rectangle& obj)
 {
-
+	m_type_name = "Rectangle";
 	m_shape = new sf::RectangleShape(*dynamic_cast<const sf::RectangleShape*>(&obj.getShape()));
 	m_trail = obj.m_trail;
 }
@@ -25,6 +29,11 @@ Rectangle::Rectangle(const Rectangle& obj)
 Prototype* Rectangle::clone()
 {
     return (Prototype*)new Rectangle(*this);
+}
+
+Figure* Rectangle::create()
+{
+	return new Rectangle();
 }
 
 void Rectangle::reset()
@@ -35,17 +44,16 @@ void Rectangle::reset()
 	m_prev_positions.clear();
 }
 
-std::ostream& Rectangle::write(std::ostream& os) const
+const std::string& Rectangle::getName() const
 {
-	const char* m_name = "Rectangle";
-	os.write(m_name, sizeof(m_name));
-	os << '\0';
-	const sf::Color& color = m_shape->getFillColor();
-	os.write((char*)&color, sizeof(sf::Color));
-	const float* transform_matrix = m_shape->getTransform().getMatrix();
-	os.write((char*)transform_matrix, 16 * sizeof(float));
-	return os;
+	return m_type_name;
 }
+
+//std::ostream& Rectangle::write(std::ostream& os) const
+//{
+//	const char* m_name = "Rectangle";
+//	return os;
+//}
 
 //std::istream& Rectangle::read(std::istream& is)
 //{

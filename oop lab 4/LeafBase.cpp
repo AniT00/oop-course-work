@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-void LeafBase::move(const sf::Vector2f& offset)
+void PrimitiveFigure::move(const sf::Vector2f& offset)
 {
     rememberTransform();
 	
@@ -17,7 +17,7 @@ void LeafBase::move(const sf::Vector2f& offset)
     
 }
 
-void LeafBase::rememberTransform()
+void PrimitiveFigure::rememberTransform()
 {
     if (m_prev_positions.size() < 10)
     {
@@ -29,13 +29,13 @@ void LeafBase::rememberTransform()
     }
 }
 
-void LeafBase::rotate(float degree)
+void PrimitiveFigure::rotate(float degree)
 {
     rememberTransform();
     m_shape->rotate(degree);
 }
 
-void LeafBase::scale(const sf::Vector2f& absolute_value, sf::Vector2f centre)
+void PrimitiveFigure::scale(const sf::Vector2f& absolute_value, sf::Vector2f centre)
 {
     auto tmp = m_shape->getGlobalBounds();
     m_shape->scale(sf::Vector2f
@@ -45,7 +45,7 @@ void LeafBase::scale(const sf::Vector2f& absolute_value, sf::Vector2f centre)
     ));
 }
 
-void LeafBase::setActive(bool active)
+void PrimitiveFigure::setActive(bool active)
 {
     m_active = active;
 }
@@ -55,7 +55,7 @@ void LeafBase::setActive(bool active)
 //    return nullptr;
 //}
 
-std::pair<Figure*, Figure*> LeafBase::getIntersection(const sf::Vector2f& position)
+std::pair<Figure*, Figure*> PrimitiveFigure::getIntersection(const sf::Vector2f& position)
 {
     auto v = m_shape->getTransform().getInverse().transformPoint(position);
     //auto tmp = parent_transform.transformRect(m_shape->getLocalBounds());
@@ -66,27 +66,17 @@ std::pair<Figure*, Figure*> LeafBase::getIntersection(const sf::Vector2f& positi
     return { nullptr, nullptr };
 }
 
-void LeafBase::setPosition(float x, float y)
-{
-    m_shape->setPosition(x, y);
-}
-
-sf::Vector2f LeafBase::getPosition()
-{
-    return m_shape->getPosition();
-}
-
-const sf::Shape& LeafBase::getShape() const
+const sf::Shape& PrimitiveFigure::getShape() const
 {
     return *m_shape;
 }
 
-sf::Shape& LeafBase::getShape()
+sf::Shape& PrimitiveFigure::getShape()
 {
     return *m_shape;
 }
 
-void LeafBase::changeColor(sf::Color offset)
+void PrimitiveFigure::changeColor(sf::Color offset)
 {
     sf::Color color = m_shape->getFillColor();
     color.r += offset.r;
@@ -95,37 +85,52 @@ void LeafBase::changeColor(sf::Color offset)
     m_shape->setFillColor(color);
 }
 
-void LeafBase::setTail(bool enabled)
+void PrimitiveFigure::setTail(bool enabled)
 {
     m_trail = enabled;
 }
 
-void LeafBase::setColor(sf::Color color)
+void PrimitiveFigure::setColor(sf::Color color)
 {
     m_shape->setFillColor(color);
 }
 
-const sf::Vector2f& LeafBase::getPosition() const
+const sf::Vector2f& PrimitiveFigure::getPosition() const
 {
 	return m_shape->getPosition();
 }
 
-const sf::Vector2f& LeafBase::getScale() const
+void PrimitiveFigure::setPosition(float x, float y)
+{
+	m_shape->setPosition(x, y);
+}
+
+const sf::Vector2f& PrimitiveFigure::getScale() const
 {
 	return m_shape->getScale();
 }
 
-float LeafBase::getRotation() const
+void PrimitiveFigure::setScale(float x, float y)
+{
+	m_shape->setScale(x, y);
+}
+
+float PrimitiveFigure::getRotation() const
 {
 	return m_shape->getRotation();
 }
 
-const sf::Transform& LeafBase::getTransform() const
+void PrimitiveFigure::setRotation(float angle)
+{
+	m_shape->setRotation(angle);
+}
+
+const sf::Transform& PrimitiveFigure::getTransform() const
 {
 	return m_shape->getTransform();
 }
 
-void LeafBase::draw(sf::RenderTarget& target, sf::RenderStates states) const
+void PrimitiveFigure::draw(sf::RenderTarget& target, sf::RenderStates states) const
 {
     if (!m_visible) { return; }
     if (m_active)
@@ -174,29 +179,51 @@ void LeafBase::draw(sf::RenderTarget& target, sf::RenderStates states) const
     target.draw(*m_shape, states);
 }
 
-LeafBase::~LeafBase()
+PrimitiveFigure::~PrimitiveFigure()
 {
     delete m_shape;
 }
 
-//std::ostream& LeafBase::write(std::ostream& os) const
-//{
-//	const char* name = getName();
-//	os.write(name, strlen(name) + 1);
-//	const sf::Color& color = m_shape->getFillColor();
-//	os.write((char*)&color, sizeof(sf::Color));
-//	const float* transform_matrix = m_shape->getTransform().getMatrix();
-//	os.write((char*)transform_matrix, 16 * sizeof(float));
-//	return os;
-//}
-//
-std::istream& LeafBase::read(std::istream& is)
+std::ostream& PrimitiveFigure::write(std::ostream& os) const
 {
+	os << '\n';
+	const std::string& name = getName();
+	os.write(name.c_str(), name.size());
+	os << '\n';
+
+	sf::Vector2f position = m_shape->getPosition();
+	os.write((char*)&position, sizeof(sf::Vector2f));
+
+	float rotation = m_shape->getRotation();
+	os.write((char*)&rotation, sizeof(float));
+
+	sf::Vector2f scale = m_shape->getScale();
+	os.write((char*)&scale, sizeof(sf::Vector2f));
+
+	const sf::Color& color = m_shape->getFillColor();
+	os.write((char*)&color, sizeof(sf::Color));
+
+	return os;
+}
+
+std::istream& PrimitiveFigure::read(std::istream& is)
+{
+	sf::Vector2f position;
+	is.read((char*)&position, sizeof(sf::Vector2f));
+
+	float rotation = m_shape->getRotation();
+	is.read((char*)&rotation, sizeof(float));
+
+	sf::Vector2f scale;
+	is.read((char*)&scale, sizeof(sf::Vector2f));
+
 	sf::Color color;
 	is.read((char*)&color, sizeof(sf::Color));
+
+	m_shape->setPosition(position);
+	m_shape->setRotation(rotation);
+	m_shape->setScale(scale);
 	m_shape->setFillColor(color);
-	float transform_matrix[16];
-	is.read((char*)&transform_matrix, 16 * sizeof(float));
-	// TODO matrix to transform.
+
 	return is;
 }

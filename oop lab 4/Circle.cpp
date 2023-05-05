@@ -2,8 +2,11 @@
 
 #include <iostream>
 
+std::string Circle::m_type_name = "Circle";
+
 Circle::Circle()
 {
+	m_type_name = "Circle";
     m_shape = new sf::CircleShape(50);
     m_shape->setFillColor(sf::Color::Blue);
     m_shape->setPosition(0, 0);
@@ -26,6 +29,11 @@ Prototype* Circle::clone()
     return (Prototype*)new Circle(*this);
 }
 
+Figure* Circle::create()
+{
+	return new Circle();
+}
+
 void Circle::reset()
 {
 	*m_shape = sf::CircleShape(50);
@@ -34,17 +42,18 @@ void Circle::reset()
 	m_prev_positions.clear();
 }
 
-std::ostream& Circle::write(std::ostream& os) const
+const std::string& Circle::getName() const
 {
-	const char* m_name = "Circle";
-	os.write(m_name, sizeof(m_name));
-	os << '\0';
-	const sf::Color& color = m_shape->getFillColor();
-	os.write((char*)&color, sizeof(sf::Color));
-	const float* transform_matrix = m_shape->getTransform().getMatrix();
-	os.write((char*)transform_matrix, 16 * sizeof(float));
-	return os;
+	return m_type_name;
 }
+
+//std::ostream& Circle::write(std::ostream& os) const
+//{
+//	const char* m_name = "Circle";
+//	os.write(m_name, sizeof(m_name));
+//	os << '\0';
+//	return base_write(os);
+//}
 
 //std::istream& Circle::read(std::istream& is)
 //{

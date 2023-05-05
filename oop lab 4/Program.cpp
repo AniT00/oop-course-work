@@ -4,10 +4,37 @@ Program::Program()
 	: scene_window(sf::VideoMode(SCENE_WINDOW_WIDTH, SCENE_WINDOW_HEIGHT), "Scene")
 {
 	scene_window.setFramerateLimit(FRAME_LIMIT);
+
 	sf::View view(scene_window.getView());
 	view.setCenter(0.f, 0.f);
 	scene_window.setView(view);
+
 	m_sceneController = SceneController::GetInstance(&scene_window);
+
+	m_menu_stack = new std::stack<Menu*>();
+
+	Menu* edit_menu = new Menu(m_menu_stack,
+		{
+			{ sf::Keyboard::Delete, new MenuOption("Delete composite", [this]() { deleteActive(); }) },
+			{ sf::Keyboard::A, new MenuOption("Add figure", [this]() { addFigure(); }) },
+			{ sf::Keyboard::M, new MenuOption("Move", [this]() { object_manipulation_type = ObjectManipulation::MOVING; }) },
+			{ sf::Keyboard::R, new MenuOption("Rotate", [this]() { object_manipulation_type = ObjectManipulation::SCALING; }) },
+			{ sf::Keyboard::S, new MenuOption("Scale", [this]() { object_manipulation_type = ObjectManipulation::ROTATING; }) },
+			{ sf::Keyboard::L, new MenuOption("Move object automatically", [this]() { m_active_figure->changeMovement(); }) },
+			{ sf::Keyboard::T, new MenuOption("Change tail visibility", [this]() { m_active_figure->changeTail(); }) },
+			{ sf::Keyboard::V, new MenuOption("Change visibility", [this]() { m_active_figure->changeVisibility(); }) },
+			{ sf::Keyboard::C, new MenuOption("Change to default", [this]() { m_active_figure->reset(); }) },
+			{ sf::Keyboard::H, new MenuOption("Change color", [this]() { changeActiveFigureColor(); }) },
+		});
+
+	m_root_menu = new Menu(m_menu_stack,
+		{
+			{ sf::Keyboard::A, new MenuOption("Add composite",[this]() { addFigure(); }) },
+			{ sf::Keyboard::U, new MenuOption("Unity with another composite",[this]() { addFigure(); }) },
+			{ sf::Keyboard::S, new MenuOption("Save scene",[this]() { saveScene(); }) },
+			{ sf::Keyboard::L, new MenuOption("Load scene",[this] () { loadScene(); }) }
+		});
+
 	changeMode(InputMode::MAIN);
 
 	std::vector<Figure*> default_prototypes({
@@ -15,16 +42,25 @@ Program::Program()
 		new Triangle(),
 		new Rectangle()
 		});
+
 	m_prototype_names = std::list<std::string>({
 		"Cirlce",
 		"Triangle",
 		"Rectangle"
 		});
+
 	m_prototypes.insert({
-		{ "Cirlce",		Composite(default_prototypes[0]).clone() },
-		{ "Triangle",	Composite(default_prototypes[1]).clone() },
-		{ "Rectangle",	Composite(default_prototypes[2]).clone() }
+		{ "Cirlce",		default_prototypes[0]->clone() },
+		{ "Triangle",	default_prototypes[1]->clone() },
+		{ "Rectangle",	default_prototypes[2]->clone() }
 		});
+
+	m_primitiveFactory = new FigureFactory();
+	m_primitiveFactory->registerType("Circle", Circle::create);
+	m_primitiveFactory->registerType("Triangle", Triangle::create);
+	m_primitiveFactory->registerType("Rectangle", Rectangle::create);
+	m_primitiveFactory->registerType("Composite", Composite::create);
+	Composite::setPrimitiveFactory(m_primitiveFactory);
 	
 }
 
@@ -267,15 +303,13 @@ void Program::OnKeyboardPress(sf::Event::KeyEvent key)
 		{
 			// Construct new composite
 		case sf::Keyboard::A:
+			addFigure(InputMode::MAIN);
+			break;
+		/*case sf::Keyboard::P:
 			changeMode(InputMode::VIEW_PROTOTYPES);
 			selectPrototype();
 			changeMode(InputMode::MAIN);
-			break;
-		case sf::Keyboard::P:
-			changeMode(InputMode::VIEW_PROTOTYPES);
-			selectPrototype();
-			changeMode(InputMode::MAIN);
-			break;
+			break;*/
 		case sf::Keyboard::U:
 			changeMode(InputMode::UNITE_COMPOSITES);
 			break;
@@ -412,9 +446,6 @@ void Program::OnKeyboardPress(sf::Event::KeyEvent key)
 			std::cout << "(B) Blue:\t" << (int)color.b << '\n';
 			m_active_figure->setActive(false);
 		}	break;
-		case sf::Keyboard::O:
-			m_active_figure->changeMovement();
-			break;
 		case sf::Keyboard::Escape:
 			object_manipulation_type = ObjectManipulation::NONE;
 			if (object_manipulation_type == ObjectManipulation::COLORING)
@@ -466,8 +497,6 @@ void Program::changeMode(InputMode _mode)
 	updateModeHint(m_mode);
 }
 
-
-
 void Program::setActive(Figure* figure)
 {
 	if (m_active_figure != nullptr)
@@ -507,7 +536,6 @@ void Program::updateModeHint(InputMode m_mode)
 		std::cout << "(S) Scale" << '\n';
 		std::cout << "(V) Change visibility" << '\n';
 		std::cout << "(T) Change tail visibility" << '\n';
-		std::cout << "(O) Move automatically" << '\n';
 		std::cout << "(C) Change to default" << '\n';
 		std::cout << "(L) Move object automatically" << '\n';
 		if (m_active_figure != m_construct_composite)
@@ -557,7 +585,7 @@ void Program::createPrototype()
 	updateModeHint(m_mode);
 }
 
-void Program::selectPrototype()
+Figure* Program::selectPrototype()
 {
 	std::cout << "Select prototype number (leave empty to cancel): ";
 	int index = 0;
@@ -569,18 +597,51 @@ void Program::selectPrototype()
 		if (index > 0 && index <= m_prototype_names.size())
 		{
 			std::string prototype_name = *std::next(m_prototype_names.begin(), index - 1);
-			Figure* new_figure = (Figure*)m_prototypes[prototype_name]->clone();
-			if (m_construct_composite == nullptr)
+			return (Figure*)m_prototypes[prototype_name]->clone();
+			/*if (m_construct_composite == nullptr)
 			{
 				m_sceneController->add(new_figure);
 			}
 			else
 			{
 				m_construct_composite->add(new_figure);
-			}
+			}*/
 		}
 	}
-	
+	return nullptr;
+}
+
+void Program::addFigure(InputMode back_to)
+{
+	changeMode(InputMode::VIEW_PROTOTYPES);
+	// Primitive can not exist by himself on the scene.
+	if (m_construct_composite == nullptr)
+	{
+		m_construct_composite = new Composite();
+		setActive(m_construct_composite);
+	}
+	Figure* new_figure = selectPrototype();
+	if (new_figure != nullptr)
+	{
+		m_construct_composite->add(new_figure);
+	}
+	changeMode(back_to);
+}
+
+void Program::addFigure()
+{
+	changeMode(InputMode::VIEW_PROTOTYPES);
+	// Primitive can not exist by himself on the scene.
+	if (m_construct_composite == nullptr)
+	{
+		m_construct_composite = new Composite();
+	}
+	Figure* new_figure = selectPrototype();
+	if (new_figure != nullptr)
+	{
+		m_construct_composite->add(new_figure);
+	}
+	setActive(m_construct_composite);
 }
 
 void Program::saveScene()
@@ -654,3 +715,26 @@ void Program::loadScene()
 	m_sceneController->restore(snapshot);
 }
 
+void Program::deleteActive()
+{
+	// If editing composite, remove it from scene.
+	if (m_construct_composite == m_active_figure)
+	{
+		m_sceneController->remove(m_construct_composite);
+	}
+	else // remove figure from composite.
+	{
+		// TODO
+		m_construct_composite->remove(m_active_figure);
+	}
+	delete m_active_figure;
+	setActive(nullptr);
+	//We're in edit mode, go back.
+	m_menu_stack->pop();
+}
+
+sf::Vector2f Program::getMouseWorldPosition()
+{
+    sf::Vector2i pixel_coord = sf::Mouse::getPosition(scene_window);
+    return scene_window.mapPixelToCoords(pixel_coord);
+}

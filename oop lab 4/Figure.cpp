@@ -67,6 +67,5 @@ std::ostream& operator<<(std::ostream& os, const Figure& obj)
 
 std::istream& operator>> (std::istream& is, Figure& obj)
 {
-	
 	return obj.read(is);
 };

@@ -3,7 +3,7 @@
 
 #include <list>
 
-class LeafBase : public Figure
+class PrimitiveFigure : public Figure
 {
 public:
 	void move(const sf::Vector2f& offset) override;
@@ -16,13 +16,7 @@ public:
 
 	void setActive(bool active) override;
 
-	//virtual Figure* TurnToComposite(Figure* figure);
-
 	std::pair<Figure*, Figure*> getIntersection(const sf::Vector2f& position) override;
-
-	void setPosition(float x, float y) override;
-
-	sf::Vector2f getPosition() override;
 
 	const sf::Shape& getShape() const override;
 
@@ -36,18 +30,24 @@ public:
 
 	const sf::Vector2f& getPosition() const override;
 
+	void setPosition(float x, float y) override;
+
 	const sf::Vector2f& getScale() const override;
 
+	void setScale(float x, float y) override;
+
 	float getRotation() const override;
+
+	void setRotation(float angle) override;
 
 	const sf::Transform& getTransform() const;
 
 	void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
 
-	~LeafBase();
+	~PrimitiveFigure();
 
 protected:
-	//std::ostream& write(std::ostream& os) const override;
+	std::ostream& write(std::ostream& os) const override;
 
 	std::istream& read(std::istream& is) override;
 

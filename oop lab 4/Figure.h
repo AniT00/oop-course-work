@@ -60,19 +60,13 @@ public:
 
 	virtual void changeColor(sf::Color offset) = 0;
 
-	virtual sf::Vector2f getPosition() = 0;
-
 	virtual const sf::Shape& getShape() const = 0;
 
 	virtual sf::Shape& getShape() = 0;
 
 	virtual void setActive(bool active) = 0;
 
-	//virtual Figure* TurnToComposite(Figure* figure) = 0;
-
 	virtual std::pair<Figure*, Figure*> getIntersection(const sf::Vector2f& position);;
-
-	virtual void setPosition(float x, float y) = 0;
 
 	virtual void changeMovement();
 
@@ -86,9 +80,15 @@ public:
 
 	virtual const sf::Vector2f& getPosition() const = 0;
 
+	virtual void setPosition(float x, float y) = 0;
+
 	virtual const sf::Vector2f& getScale() const = 0;
 
+	virtual void setScale(float x, float y) = 0;
+
 	virtual float getRotation() const = 0;
+
+	virtual void setRotation(float angle) = 0;
 
 	virtual const sf::Transform& getTransform() const = 0;
 
@@ -106,6 +106,8 @@ protected:
 	virtual std::ostream& write(std::ostream& os) const = 0;
 	
 	virtual std::istream& read(std::istream& is) = 0;
+
+	virtual const std::string& getName() const = 0;
 
 	Figure* m_parent = nullptr;
 	bool m_active = false;

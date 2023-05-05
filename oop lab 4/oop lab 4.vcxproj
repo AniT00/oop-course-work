@@ -122,6 +122,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -133,7 +134,10 @@
   <ItemGroup>
     <ClCompile Include="Circle.cpp" />
     <ClCompile Include="Composite.cpp" />
+    <ClCompile Include="FigureFactory.cpp" />
     <ClCompile Include="LeafBase.cpp" />
+    <ClCompile Include="Menu.cpp" />
+    <ClCompile Include="MenuOption.cpp" />
     <ClCompile Include="Prototype.cpp" />
     <ClCompile Include="SceneController.cpp" />
     <ClCompile Include="Figure.cpp" />
@@ -145,7 +149,10 @@
   <ItemGroup>
     <ClInclude Include="Circle.h" />
     <ClInclude Include="Composite.h" />
+    <ClInclude Include="FigureFactory.h" />
     <ClInclude Include="LeafBase.h" />
+    <ClInclude Include="Menu.h" />
+    <ClInclude Include="MenuOption.h" />
     <ClInclude Include="Prototype.h" />
     <ClInclude Include="SceneController.h" />
     <ClInclude Include="Figure.h" />

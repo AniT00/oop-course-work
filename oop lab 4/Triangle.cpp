@@ -2,6 +2,8 @@
 
 #include <iostream>
 
+std::string Triangle::m_type_name = "Triangle";
+
 Triangle::Triangle()
 {
 	m_shape = new sf::CircleShape(50);
@@ -29,6 +31,11 @@ Prototype* Triangle::clone()
     return (Prototype*)new Triangle(*this);
 }
 
+Figure* Triangle::create()
+{
+	return new Triangle();
+}
+
 void Triangle::reset()
 {
 	*m_shape = sf::CircleShape(50);
@@ -39,17 +46,16 @@ void Triangle::reset()
 
 }
 
-std::ostream& Triangle::write(std::ostream& os) const
+const std::string& Triangle::getName() const
 {
-	const char* m_name = "Triangle";
-	os.write(m_name, sizeof(m_name));
-	os << '\0';
-	const sf::Color& color = m_shape->getFillColor();
-	os.write((char*)&color, sizeof(sf::Color));
-	const float* transform_matrix = m_shape->getTransform().getMatrix();
-	os.write((char*)transform_matrix, 16 * sizeof(float));
-	return os;
+	return m_type_name;
 }
+
+//std::ostream& Triangle::write(std::ostream& os) const
+//{
+//	const char* m_name = "Triangle";
+//	return os;
+//}
 
 //std::istream& Triangle::read(std::istream& is)
 //{

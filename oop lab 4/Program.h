@@ -2,6 +2,7 @@
 
 #define FRAME_LIMIT	60
 #include "SceneController.h"
+#include "Menu.h"
 
 #include "Circle.h"
 #include "Rectangle.h"
@@ -65,21 +66,41 @@ private:
 
 	void createPrototype();
 
-	void selectPrototype();
+	Figure* selectPrototype();
+
+	void addFigure(InputMode back_to);
+
+	void addFigure();
 
 	void saveScene();
 
 	void loadScene();
 
-	sf::Vector2f getMouseWorldPosition()
+	void deleteActive();
+
+	void changeActiveFigureColor()
 	{
-		sf::Vector2i pixel_coord = sf::Mouse::getPosition(scene_window);
-		return scene_window.mapPixelToCoords(pixel_coord);
+		if (m_active_figure == m_construct_composite)
+		{
+			return;
+		}
+		// TODO
+		object_manipulation_type = ObjectManipulation::COLORING;
+		system("cls");
+		sf::Color color = m_active_figure->getShape().getFillColor();
+		std::cout << "(F) Red:\t" << (int)color.r << '\n';
+		std::cout << "(G) Green\t" << (int)color.g << '\n';
+		std::cout << "(B) Blue:\t" << (int)color.b << '\n';
+		m_active_figure->setActive(false);
 	}
+
+	sf::Vector2f getMouseWorldPosition();
 
 	sf::RenderWindow scene_window;
 
 	SceneController* m_sceneController;
+
+	FigureFactory* m_primitiveFactory;
 
 	InputMode m_mode;
 
@@ -100,5 +121,8 @@ private:
 	bool m_mouse_pressed_in_window = false;
 
 	bool m_active_composite_modified = false;
+
+	Menu* m_root_menu;
+	std::stack<Menu*>* m_menu_stack;
 };
 
