@@ -48,7 +48,7 @@ Program::Program()
 				std::cout << "Press left mouse button to save changes";
 				m_initial_active_figure_transform.setPosition(m_active_figure->getPosition());
 				m_initial_mouse_position = getMouseWorldPosition();
-				changeMode(InputMode::MOVING);/*object_manipulation_type = ObjectManipulation::MOVING;*/
+				changeMode(InputMode::MOVING);
 			}) },
 		{ sf::Keyboard::R, new MenuOption("Rotate", [this]() 
 			{ 
@@ -358,7 +358,6 @@ void Program::OnMouseMoved()
 		m_edit_line_hint.setScale(1.f, length);
 		m_edit_line_hint.setRotation(c);
 		m_active_figure->setRotation(m_initial_active_figure_transform.getRotation() + change);
-		//m_active_figure->setRotation(m_initial_active_figure_transform.getRotation() + change);
 		break;
 	}
 	case InputMode::SCALING:
@@ -379,11 +378,6 @@ void Program::OnMouseMoved()
 	default:
 		break;
 	}
-	/*if (m_mode == InputMode::EDIT_OBJECT &&
-		object_manipulation_type != ObjectManipulation::NONE)
-	{
-		handleObjectManipulation();
-	}*/
 	m_last_mouse_position = getMouseWorldPosition();
 }
 
