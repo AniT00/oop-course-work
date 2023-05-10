@@ -166,9 +166,6 @@ void Menu::handleKey(sf::Keyboard::Key key)
 
 std::ostream& operator<<(std::ostream& os, const Menu& obj)
 {
-	// To print key we should get offset. 
-	// Thus we depend on alphabetic order of thesf::Keyboard::Key enum.
-	//static constexpr char A_offset = 'A' - sf::Keyboard::A;
 	if (!obj.m_title.empty())
 	{
 		std::cout << obj.m_title << '\n';

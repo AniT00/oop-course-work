@@ -35,15 +35,6 @@ enum class InputMode
 	SCALING,
 };
 
-enum class ObjectManipulation
-{
-	NONE,
-	MOVING,
-	ROTATING,
-	SCALING,
-	COLORING
-};
-
 class Program
 {
 public:
@@ -94,15 +85,13 @@ private:
 
 	void deleteActive();
 
-	void changeActiveFigureColor();
-
 	void discardlActiveFigureChanges();
 
 	void endModifyingActiveFigure();
 
 	sf::Vector2f getMouseWorldPosition();
 
-	sf::RenderWindow scene_window;
+	sf::RenderWindow m_scene_window;
 
 	SceneController* m_sceneController;
 
@@ -118,19 +107,18 @@ private:
 
 	Figure* m_construct_composite = nullptr;
 
-	sf::RectangleShape m_edit_line_hint;
-	//sf::Vector2f m_initial_edit_line_rotation;
-	bool show_edit_line_hint = false;
+	sf::Vector2<bool> m_draw_axis;
 
-	ObjectManipulation m_active_manipulating_object = ObjectManipulation::NONE, object_manipulation_type = ObjectManipulation::NONE;
-	
-	sf::Vector2f m_editing_scale_factor = sf::Vector2f(1.f, 1.f);
+	// Stores initial transform to get back in case user wants to discard changes.
 	sf::Transformable m_initial_active_figure_transform;
+	// Stores temp changes that wasn't confirmed.
+	sf::Transformable m_temp_scale_transform;
 	sf::Vector2f m_initial_mouse_position;
-	sf::Vector2f m_initial_scale;
 
 	sf::Vector2f m_last_mouse_position;
 	sf::Vector2f m_mouse_click_position;
+
+	bool m_xy_pressed[2] = { false, false };
 
 	Figure* m_first_of_union = nullptr;
 

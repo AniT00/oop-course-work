@@ -5,6 +5,13 @@
 SceneController* SceneController::Controller_ = nullptr;
 
 
+SceneController::SceneController(sf::RenderWindow* window)
+{
+	m_window_target = window;
+	m_axis.setSize(sf::Vector2f(2.f, std::numeric_limits<float>().max() / 2e20));
+	m_axis.setOrigin(m_axis.getSize() / 2.f);
+}
+
 SceneController::Snapshot SceneController::save()
 {
 	return Snapshot(m_figures);
@@ -37,23 +44,43 @@ void SceneController::update()
 	}
 }
 
+void SceneController::clear()
+{
+	m_window_target->clear(sf::Color::White);
+}
+
 void SceneController::draw()
 {
-	windowTarget->clear(sf::Color::White);
 	for (auto var : m_figures)
 	{
-		windowTarget->draw(*var);
+		m_window_target->draw(*var);
 	}
 }
 
 void SceneController::draw(const sf::Shape& shape)
 {
-	windowTarget->draw(shape);
+	m_window_target->draw(shape);
+}
+
+void SceneController::drawAxis(sf::Vector2<bool> axis_to_draw)
+{
+	if (axis_to_draw.x)
+	{
+		m_axis.setRotation(0);
+		m_axis.setFillColor(sf::Color::Red);
+		m_window_target->draw(m_axis);
+	}
+	if (axis_to_draw.y)
+	{
+		m_axis.setRotation(90);
+		m_axis.setFillColor(sf::Color::Green);
+		m_window_target->draw(m_axis);
+	}
 }
 
 void SceneController::display()
 {
-	windowTarget->display();
+	m_window_target->display();
 }
 
 std::pair<Figure*, Figure*> SceneController::getIntersection(const sf::Vector2f& position)

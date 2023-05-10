@@ -51,7 +51,6 @@ void PrimitiveFigure::scale(const sf::Vector2f& absolute_value, sf::Vector2f cen
 
 void PrimitiveFigure::setActive(bool active)
 {
-    //m_active = active;
 	if (active)
 	{
 		m_shape->setOutlineThickness(3.f);
@@ -62,15 +61,9 @@ void PrimitiveFigure::setActive(bool active)
 	}
 }
 
-//Figure* LeafBase::TurnToComposite(Figure* figure)
-//{
-//    return nullptr;
-//}
-
 std::pair<Figure*, Figure*> PrimitiveFigure::getIntersection(const sf::Vector2f& position)
 {
     auto v = m_shape->getTransform().getInverse().transformPoint(position);
-    //auto tmp = parent_transform.transformRect(m_shape->getLocalBounds());
     if (m_shape->getLocalBounds().contains(v))
     {
         return { nullptr, this };

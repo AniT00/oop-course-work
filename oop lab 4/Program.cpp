@@ -26,15 +26,15 @@ float get_clockwise_angle(sf::Vector2f first, sf::Vector2f second)
 }
 
 Program::Program()
-	: scene_window(sf::VideoMode(SCENE_WINDOW_WIDTH, SCENE_WINDOW_HEIGHT), "Scene")
+	: m_scene_window(sf::VideoMode(SCENE_WINDOW_WIDTH, SCENE_WINDOW_HEIGHT), "Scene")
 {
-	scene_window.setFramerateLimit(FRAME_LIMIT);
+	m_scene_window.setFramerateLimit(FRAME_LIMIT);
 
-	sf::View view(scene_window.getView());
+	sf::View view(m_scene_window.getView());
 	view.setCenter(0.f, 0.f);
-	scene_window.setView(view);
+	m_scene_window.setView(view);
 
-	m_sceneController = SceneController::GetInstance(&scene_window);
+	m_sceneController = SceneController::GetInstance(&m_scene_window);
 
 	std::list<key_option_pair_t> common_options
 	{
@@ -45,38 +45,27 @@ Program::Program()
 			})},
 		{ sf::Keyboard::M, new MenuOption("Move", [this]() 
 			{ 
-				std::cout << "Press left mouse button to save changes";
+				std::cout << "Press Escape to discard changes.\n";
+				std::cout << "Press left mouse button to save changes.";
 				m_initial_active_figure_transform.setPosition(m_active_figure->getPosition());
 				m_initial_mouse_position = getMouseWorldPosition();
 				changeMode(InputMode::MOVING);
 			}) },
 		{ sf::Keyboard::R, new MenuOption("Rotate", [this]() 
 			{ 
-				std::cout << "Press left mouse button to save changes";
-				sf::Vector2f cur = getMouseWorldPosition();
-				cur -= m_initial_active_figure_transform.getPosition();
-				sf::Vector2f initial = m_initial_mouse_position;
-				initial -= m_initial_active_figure_transform.getPosition();
-				float diff = get_clockwise_angle(sf::Vector2f(0.f, 1.f), cur);
-
+				std::cout << "Press Escape to discard changes.\n";
+				std::cout << "Press left mouse button to save changes.";
 				m_initial_active_figure_transform.setRotation(m_active_figure->getRotation());
 				m_initial_mouse_position = getMouseWorldPosition();
-
-				show_edit_line_hint = true;
-				m_edit_line_hint.setPosition(m_active_figure->getPosition());
-				m_edit_line_hint.setRotation(diff);
-				float length = vector_length(getMouseWorldPosition() - m_initial_active_figure_transform.getPosition());
-				m_edit_line_hint.setScale(1.f, length);
-
 				changeMode(InputMode::ROTATING);
 			}) },
 		{ sf::Keyboard::S, new MenuOption("Scale", [this]() 
 			{
-				std::cout << "Press Escape to discard changes";
-				std::cout << "Press left mouse button to save changes";
-				//m_editing_scale_factor = sf::Vector2f(1.f, 1.f);
+				std::cout << "Press Escape to discard changes.\n";
+				std::cout << "Press left mouse button to save changes.\n";
+				std::cout << "Press X to switch scaling horizontally.\n";
+				std::cout << "Press Y to switch scaling horizontally.";
 				m_initial_active_figure_transform.setScale(m_active_figure->getScale());
-				m_initial_scale = m_active_figure->getScale();
 				m_initial_mouse_position = getMouseWorldPosition();
 				changeMode(InputMode::SCALING);
 			}) },
@@ -85,7 +74,7 @@ Program::Program()
 		{ sf::Keyboard::V, new MenuOption("Change visibility", [this]() { m_active_figure->changeVisibility(); }) },
 		{ sf::Keyboard::C, new MenuOption("Change to default", [this]() { m_active_figure->reset(); }) },
 		{ sf::Keyboard::H, new MenuOption("Change color", 
-		[this]() { object_manipulation_type = ObjectManipulation::COLORING; printColorHint(); })}
+		[this]() { /*object_manipulation_type = ObjectManipulation::COLORING;*/ printColorHint(); })}
 	};
 
 	m_edit_composite_menu = new Menu(common_options);
@@ -124,8 +113,8 @@ Program::Program()
 					}
 				})},
 			{ sf::Keyboard::U, new MenuOption("Unity with another composite",[this]() { addFigure(); }) },
-			{ sf::Keyboard::S, new MenuOption("Save scene",[this]() { saveScene(); }) },
-			{ sf::Keyboard::L, new MenuOption("Load scene",[this]() { loadScene(); }) }
+			{ sf::Keyboard::S, new MenuOption("Save scene",[this]() { saveScene(); printMenu(); })},
+			{ sf::Keyboard::L, new MenuOption("Load scene",[this]() { loadScene(); printMenu(); }) }
 		});
 
 	openMenu(m_root_menu);
@@ -134,27 +123,22 @@ Program::Program()
 	addPrimitivePrototype("Triangle",	Triangle::create);
 	addPrimitivePrototype("Rectangle",	Rectangle::create);
 	
-	Composite::setPrimitiveFactory(&m_primitiveFigureFactory);
-
-	m_edit_line_hint.setSize(sf::Vector2f(6.f, 1.f));
-	m_edit_line_hint.setOrigin(3.f, 0.f);
-	m_edit_line_hint.setFillColor(sf::Color(207, 200, 176, 170));
-	
+	Composite::setPrimitiveFactory(&m_primitiveFigureFactory);	
 }
 
 void Program::run()
 {
-	while (scene_window.isOpen())
+	while (m_scene_window.isOpen())
 	{
 		handleEvents();
 
 		m_sceneController->update();
 
+		m_sceneController->clear();
+
+		m_sceneController->drawAxis(m_draw_axis);
+
 		m_sceneController->draw();
-		if (show_edit_line_hint)
-		{
-			m_sceneController->draw(m_edit_line_hint);
-		}
 
 		m_sceneController->display();
 	}
@@ -174,13 +158,18 @@ Program::~Program()
 void Program::handleEvents()
 {
 	sf::Event event;
-	while (scene_window.pollEvent(event))
+	while (m_scene_window.pollEvent(event))
 	{
 		using enum sf::Event::EventType;
 		switch (event.type)
 		{
+		case Resized:
+			m_scene_window.setView(sf::View(sf::Vector2f(0, 0), sf::Vector2f(event.size.width, event.size.height)));
+			//sf::View v(sf::FloatRect(0, 0, event.size.width, event.size.height));
+			//v.setCenter(0.f, 0.f);
+			break;
 		case Closed:
-			scene_window.close();
+			m_scene_window.close();
 			break;
 		case KeyPressed:
 		case MouseButtonPressed:
@@ -203,6 +192,23 @@ void Program::handleInput(sf::Event event)
 		using enum InputMode;
 		if (is_in(m_mode, MOVING, SCALING, ROTATING)) 
 		{
+			if (m_mode == SCALING)
+			{
+				if (event.key.code == sf::Keyboard::X)
+				{
+					m_xy_pressed[0] = !m_xy_pressed[0];
+					m_draw_axis.y = m_xy_pressed[0];
+					m_initial_mouse_position = getMouseWorldPosition();
+					m_temp_scale_transform.setScale(m_active_figure->getScale());
+				}
+				else if (event.key.code == sf::Keyboard::Y)
+				{
+					m_xy_pressed[1] = !m_xy_pressed[1];
+					m_draw_axis.y = m_xy_pressed[1];
+					m_initial_mouse_position = getMouseWorldPosition();
+					m_temp_scale_transform.setScale(m_active_figure->getScale());
+				}
+			}
 			if (event.key.code == sf::Keyboard::Escape)
 			{
 				discardlActiveFigureChanges();
@@ -210,7 +216,6 @@ void Program::handleInput(sf::Event event)
 			break;
 		}
 		m_menu_stack.top()->handleKey(event.key.code);
-		//OnKeyboardPressed(event.key);
 		break;
 	case MouseButtonPressed:
 		OnMouseButtonPressed();
@@ -270,7 +275,6 @@ void Program::OnMouseButtonReleased()
 	default:
 		break;
 	}
-	m_active_manipulating_object = ObjectManipulation::NONE;
 	m_mouse_pressed_in_window = false;
 	m_active_composite_modified = false;
 }
@@ -355,8 +359,6 @@ void Program::OnMouseMoved()
 		float change = get_clockwise_angle(initial, cur);
 		float length = vector_length(getMouseWorldPosition() - m_initial_active_figure_transform.getPosition());
 		float c = get_clockwise_angle(sf::Vector2f(0.f, 1.f), cur);
-		m_edit_line_hint.setScale(1.f, length);
-		m_edit_line_hint.setRotation(c);
 		m_active_figure->setRotation(m_initial_active_figure_transform.getRotation() + change);
 		break;
 	}
@@ -366,13 +368,20 @@ void Program::OnMouseMoved()
 		cur -= m_initial_active_figure_transform.getPosition();
 		sf::Vector2f initial = m_initial_mouse_position;
 		initial -= m_initial_active_figure_transform.getPosition();
+		//sf::Vector2f initial_x = m_initial_scale_mouse_position.first;
+		//initial_x -= m_initial_active_figure_transform.getPosition();
+		//sf::Vector2f initial_y = m_initial_scale_mouse_position.second;
 		float cur_length = vector_length(cur);
-		//TODO class member
 		float initial_length = vector_length(initial);
 		float factor = cur_length / initial_length;
+		//TODO class member
+		//float initial_x_length = vector_length(initial_x);
+		//float initial_y_length = vector_length(initial_y);
+		//float factor_x = cur_length / initial_x_length;
+		//float factor_y = cur_length / initial_y_length;
 		m_active_figure->setScale(
-			m_initial_active_figure_transform.getScale().x * factor,
-			m_initial_active_figure_transform.getScale().y * factor);
+			m_xy_pressed[0] ? m_temp_scale_transform.getScale().x * factor : m_active_figure->getScale().x,
+			m_xy_pressed[1] ? m_temp_scale_transform.getScale().y * factor : m_active_figure->getScale().y);
 		break;
 	}
 	default:
@@ -606,21 +615,20 @@ void Program::deleteActive()
 	m_menu_stack.pop();
 }
 
-void Program::changeActiveFigureColor()
-{
-	if (m_active_figure == m_construct_composite)
-	{
-		return;
-	}
-	// TODO
-	object_manipulation_type = ObjectManipulation::COLORING;
-	system("cls");
-	sf::Color color = m_active_figure->getShape().getFillColor();
-	std::cout << "(F) Red:\t" << (int)color.r << '\n';
-	std::cout << "(G) Green\t" << (int)color.g << '\n';
-	std::cout << "(B) Blue:\t" << (int)color.b << '\n';
-	m_active_figure->setActive(false);
-}
+//void Program::changeActiveFigureColor()
+//{
+//	if (m_active_figure == m_construct_composite)
+//	{
+//		return;
+//	}
+//	// TODO
+//	system("cls");
+//	sf::Color color = m_active_figure->getShape().getFillColor();
+//	std::cout << "(F) Red:\t" << (int)color.r << '\n';
+//	std::cout << "(G) Green\t" << (int)color.g << '\n';
+//	std::cout << "(B) Blue:\t" << (int)color.b << '\n';
+//	m_active_figure->setActive(false);
+//}
 
 void Program::discardlActiveFigureChanges()
 {
@@ -643,7 +651,6 @@ void Program::discardlActiveFigureChanges()
 
 void Program::endModifyingActiveFigure()
 {
-	show_edit_line_hint = false;
 	printMenu();
 	changeMode(InputMode::EDIT_OBJECT);
 }
@@ -652,6 +659,6 @@ void Program::endModifyingActiveFigure()
 
 sf::Vector2f Program::getMouseWorldPosition()
 {
-    sf::Vector2i pixel_coord = sf::Mouse::getPosition(scene_window);
-    return scene_window.mapPixelToCoords(pixel_coord);
+    sf::Vector2i pixel_coord = sf::Mouse::getPosition(m_scene_window);
+    return m_scene_window.mapPixelToCoords(pixel_coord);
 }

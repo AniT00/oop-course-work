@@ -11,10 +11,7 @@
 class SceneController
 {
 protected:
-	SceneController(sf::RenderWindow* window)
-	{
-		windowTarget = window;
-	}
+	SceneController(sf::RenderWindow* window);
 
 	static SceneController* Controller_;
 
@@ -51,9 +48,13 @@ public:
 
 	void update();
 
+	void clear();
+
 	void draw();
 
 	void draw(const sf::Shape& shape);
+
+	void drawAxis(sf::Vector2<bool> axis_to_draw);
 
 	void display();
 
@@ -75,8 +76,9 @@ public:
 		
 private:
 	std::list<Figure*> m_figures;
+	sf::RectangleShape m_axis;
 
-	sf::RenderWindow* windowTarget;
+	sf::RenderWindow* m_window_target;
 };
 
 
