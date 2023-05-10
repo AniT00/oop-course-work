@@ -148,12 +148,6 @@ void Program::run()
 	{
 		handleEvents();
 
-		if (m_mode == InputMode::EDIT_OBJECT &&
-			object_manipulation_type != ObjectManipulation::NONE)
-		{
-			handleObjectManipulation();
-		}
-
 		m_sceneController->update();
 
 		m_sceneController->draw();
@@ -268,18 +262,29 @@ void Program::OnMouseButtonReleased()
 			break;
 		}
 		setActive(primitive);
-		//closeMenu();
 		openMenu(m_edit_primitive_menu);
-		//changeMode(InputMode::EDIT_OBJECT);
 		break;
 	}
 	default:
 		break;
 	}
-	handleObjectManipulation();
 	m_active_manipulating_object = ObjectManipulation::NONE;
 	m_mouse_pressed_in_window = false;
 	m_active_composite_modified = false;
+}
+			break;
+		}
+		default:
+			break;
+		}
+		handleObjectManipulation();
+		active_manipulating_object = ObjectManipulation::NONE;
+		m_mouse_pressed_in_window = false;
+		m_active_composite_modified = false;
+		break;
+	default:
+		break;
+	}
 }
 
 void Program::OnMouseButtonPressed()
@@ -372,6 +377,7 @@ void Program::OnMouseMoved()
 	{
 		sf::Vector2f cur = getMouseWorldPosition();
 		cur -= m_initial_active_figure_transform.getPosition();
+	m_last_mouse_position = getMouseWorldPosition();
 		sf::Vector2f initial = m_initial_mouse_position;
 		initial -= m_initial_active_figure_transform.getPosition();
 		float cur_length = vector_length(cur);
@@ -386,12 +392,6 @@ void Program::OnMouseMoved()
 	default:
 		break;
 	}
-	/*if (m_mode == InputMode::EDIT_OBJECT &&
-		object_manipulation_type != ObjectManipulation::NONE)
-	{
-		handleObjectManipulation();
-	}*/
-	m_last_mouse_position = getMouseWorldPosition();
 }
 
 void Program::changeMode(InputMode _mode)
@@ -415,20 +415,6 @@ void Program::createPrototype()
 	std::string prototype_name;
 	std::getline(std::cin, prototype_name);
 	if (!prototype_name.empty())
-	{
-		m_prototypes.insert({ prototype_name, m_active_figure->clone() });
-		m_prototype_names.push_back(prototype_name);
-	}
-}
-
-Figure* Program::selectPrototype()
-{
-	std::cout << "Select prototype number (leave empty to cancel): ";
-	int index = 0;
-	std::string input;
-	std::getline(std::cin, input);
-	if (input.empty())
-	{
 		return nullptr;
 	}
 	index = atoi(input.c_str());
@@ -443,8 +429,8 @@ Figure* Program::selectPrototype()
 		getchar();
 		return nullptr;
 	}
-}
-
+		{
+			std::string prototype_name = *std::next(m_prototype_names.begin(), index - 1);
 void Program::printColorHint()
 {
 	system("cls");
@@ -454,11 +440,17 @@ void Program::printColorHint()
 	std::cout << "(B) Blue:\t" << (int)color.b << '\n';
 }
 
+void Program::printPrototypes()
+{
+	system("cls");
+	int i = 1;
+	for (auto& m_name : m_prototype_names)
+	return nullptr;
+}
+
 void Program::addFigure(InputMode back_to)
 {
-	printPrototypes();
-	//TODO
-	//changeMode(InputMode::VIEW_PROTOTYPES);
+bool Program::addFigure()
 	// Primitive can not exist by himself on the scene.
 	if (m_construct_composite == nullptr)
 	{
@@ -468,22 +460,11 @@ void Program::addFigure(InputMode back_to)
 	Figure* new_figure = selectPrototype();
 	if (new_figure != nullptr)
 	{
-		m_construct_composite->add(new_figure);
-	}
-	changeMode(back_to);
-}
-
-void Program::printPrototypes()
-{
-	system("cls");
-	int i = 1;
-	for (auto& m_name : m_prototype_names)
-	{
 		std::cout << i++ << ". " << m_name << '\n';
 	}
 }
 
-bool Program::addFigure()
+void Program::addFigure()
 {
 	printPrototypes();
 	//TODO
