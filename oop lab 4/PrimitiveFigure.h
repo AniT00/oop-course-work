@@ -6,6 +6,11 @@
 class PrimitiveFigure : public Figure
 {
 public:
+	/*
+	* When creating new primitive, base class should get shape to initialize common m_shape properties. 
+	*/
+	PrimitiveFigure(sf::Shape* shape);
+
 	void move(const sf::Vector2f& offset) override;
 
 	void rememberTransform();
@@ -27,14 +32,20 @@ public:
 	void setTail(bool enabled) override;
 
 	void setColor(sf::Color color) override;
+	
+	const sf::Color& getColor() const override;
 
 	const sf::Vector2f& getPosition() const override;
 
 	void setPosition(float x, float y) override;
 
+	void setPosition(const sf::Vector2f& position) override;
+
 	const sf::Vector2f& getScale() const override;
 
 	void setScale(float x, float y) override;
+
+	void setScale(const sf::Vector2f& scale) override;
 
 	float getRotation() const override;
 
@@ -52,7 +63,8 @@ protected:
 	std::istream& read(std::istream& is) override;
 
 	std::list<sf::Transform> m_prev_positions;
-	sf::Shape* m_shape;
-	int m_trail;
+
+	// Dissallow changing of shape object: ptr can be initialized only in base constructor.
+	sf::Shape* const m_shape;
 };
 

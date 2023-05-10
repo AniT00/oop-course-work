@@ -1,6 +1,12 @@
-#include "LeafBase.h"
+#include "PrimitiveFigure.h"
 
 #include <iostream>
+
+PrimitiveFigure::PrimitiveFigure(sf::Shape* shape)
+	: m_shape(shape)
+{ 
+	m_shape->setOutlineColor(sf::Color::Red);
+}
 
 void PrimitiveFigure::move(const sf::Vector2f& offset)
 {
@@ -10,8 +16,6 @@ void PrimitiveFigure::move(const sf::Vector2f& offset)
 	{
 		sf::Transform n = sf::Transform().rotate(-m_parent->getRotation());
 		sf::Vector2f m = n.transformPoint(offset);
-		// TODO check if statement necessity
-		// fix this
 		m_shape->move(m);
 	}
     
@@ -47,7 +51,15 @@ void PrimitiveFigure::scale(const sf::Vector2f& absolute_value, sf::Vector2f cen
 
 void PrimitiveFigure::setActive(bool active)
 {
-    m_active = active;
+    //m_active = active;
+	if (active)
+	{
+		m_shape->setOutlineThickness(3.f);
+	}
+	else
+	{
+		m_shape->setOutlineThickness(0.f);
+	}
 }
 
 //Figure* LeafBase::TurnToComposite(Figure* figure)
@@ -87,12 +99,17 @@ void PrimitiveFigure::changeColor(sf::Color offset)
 
 void PrimitiveFigure::setTail(bool enabled)
 {
-    m_trail = enabled;
+    m_tail = enabled;
 }
 
 void PrimitiveFigure::setColor(sf::Color color)
 {
     m_shape->setFillColor(color);
+}
+
+const sf::Color& PrimitiveFigure::getColor() const
+{
+	return m_shape->getFillColor();
 }
 
 const sf::Vector2f& PrimitiveFigure::getPosition() const
@@ -105,6 +122,11 @@ void PrimitiveFigure::setPosition(float x, float y)
 	m_shape->setPosition(x, y);
 }
 
+void PrimitiveFigure::setPosition(const sf::Vector2f& position)
+{
+	setPosition(position.x, position.y);
+}
+
 const sf::Vector2f& PrimitiveFigure::getScale() const
 {
 	return m_shape->getScale();
@@ -113,6 +135,11 @@ const sf::Vector2f& PrimitiveFigure::getScale() const
 void PrimitiveFigure::setScale(float x, float y)
 {
 	m_shape->setScale(x, y);
+}
+
+void PrimitiveFigure::setScale(const sf::Vector2f& scale)
+{
+	setScale(scale.x, scale.y);
 }
 
 float PrimitiveFigure::getRotation() const
@@ -133,28 +160,6 @@ const sf::Transform& PrimitiveFigure::getTransform() const
 void PrimitiveFigure::draw(sf::RenderTarget& target, sf::RenderStates states) const
 {
     if (!m_visible) { return; }
-    if (m_active)
-    {
-        if (pulse >= ACTIVE_OBJECT_PULSE_TIME)
-        {
-            if (pulse_state.colorEquation == sf::BlendMode::ReverseSubtract)
-            {
-                pulse_state.colorDstFactor = sf::BlendMode::Zero;
-                pulse_state.colorEquation = sf::BlendMode::Add;
-            }
-            else
-            {
-                pulse_state.colorDstFactor = sf::BlendMode::One;
-                pulse_state.colorEquation = sf::BlendMode::ReverseSubtract;
-            }
-            pulse = 0;
-        }
-        else
-        {
-            pulse++;
-        }
-        states.blendMode = pulse_state;
-    }
     if (m_tail)
     {
         sf::Vector2f pos = m_shape->getPosition();

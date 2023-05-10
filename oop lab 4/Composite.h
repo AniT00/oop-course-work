@@ -49,13 +49,19 @@ public:
 
 	void setColor(sf::Color color) override;
 
+	const sf::Color& getColor() const override;
+
 	const sf::Vector2f& getPosition() const override;
 
 	void setPosition(float x, float y) override;
 
+	void setPosition(const sf::Vector2f& position) override;
+
 	const sf::Vector2f& getScale() const override;
 
 	void setScale(float x, float y) override;
+
+	void setScale(const sf::Vector2f& scale) override;
 
 	float getRotation() const override;
 
@@ -83,9 +89,10 @@ private:
 	sf::Vector2f m_scale = sf::Vector2f(1.f,1.f);
 	sf::Vector2f m_size = sf::Vector2f(1.f, 1.f);
 	sf::Vector2f m_position = sf::Vector2f(0.f, 0.f);
+	sf::Color m_color_modifier;
 	mutable sf::Transformable t;
 
-	static FigureFactory* m_primitiveFactory;
+	static FigureFactory* m_primitiveFigureFactory;
 
 	float m_rotation = 0;
 };

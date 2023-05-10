@@ -53,6 +53,10 @@ public:
 
 	void draw();
 
+	void draw(const sf::Shape& shape);
+
+	void display();
+
 	/// <summary>
 	/// Returns pair of figures: first pair element - composite,
 	/// which contains second pair element - intersected primitive.

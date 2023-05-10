@@ -2,9 +2,6 @@
 
 #include <iostream>
 
-sf::BlendMode Figure::pulse_state = sf::BlendMode();
-int Figure::pulse = 0;
-
 std::pair<Figure*, Figure*> Figure::getIntersection(const sf::Vector2f& position)
 {
     return { nullptr, nullptr };
@@ -33,6 +30,24 @@ void Figure::setParent(Figure* parent)
 const Figure* Figure::getChild(size_t index) const
 {
 	throw std::exception("Leaf has no childs.");
+}
+
+void Figure::add(Figure* figure)
+{
+	throw std::exception("Can't add to leaf.");
+}
+
+bool Figure::remove(Figure* figure)
+{
+    throw std::exception("Can't remove from leaf.");
+}
+
+void Figure::update()
+{
+	if (m_move_automatically)
+	{
+		move(sf::Vector2f(-1.f, 1.f));
+	}
 }
 
 void Figure::setOriginByAverage()

@@ -2,8 +2,8 @@
 
 int main()
 {	
-	Program program;
-	program.run();
+	Program* program = new Program;
+	program->run();
 
 	return 0;
 }

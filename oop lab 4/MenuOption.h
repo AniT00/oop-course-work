@@ -1,9 +1,13 @@
 #pragma once
 
+#include <iostream>
 #include <string>
 #include <functional>
 
 class Menu;
+class MenuOption;
+
+std::ostream& operator<<(std::ostream& os, const MenuOption& obj);
 
 class MenuOption
 {
@@ -16,24 +20,24 @@ public:
 
 	const std::string& getText() const;
 
-	~MenuOption()
-	{
-
-	}
+	~MenuOption();
 private:
+	friend std::ostream& operator<<(std::ostream& os, const MenuOption& obj);
+
 	std::string m_text;
 
 	bool m_submenu_command = false;
 
 	union Command
 	{
-		Menu* submenu = nullptr;
-		std::function<void()> function;
+		Menu* m_submenu = nullptr;
+		std::function<void()> m_function;
 
-		~Command()
-		{
+		Command(std::function<void()> function);
 
-		}
+		Command(Menu* submenu);
+
+		~Command() {}
 	};
 
 	Command m_command;

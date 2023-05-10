@@ -44,6 +44,15 @@ void SceneController::draw()
 	{
 		windowTarget->draw(*var);
 	}
+}
+
+void SceneController::draw(const sf::Shape& shape)
+{
+	windowTarget->draw(shape);
+}
+
+void SceneController::display()
+{
 	windowTarget->display();
 }
 

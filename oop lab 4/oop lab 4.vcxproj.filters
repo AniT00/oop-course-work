@@ -33,7 +33,7 @@
     <ClCompile Include="Program.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="LeafBase.cpp">
+    <ClCompile Include="PrimitiveFigure.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
     <ClCompile Include="Circle.cpp">
@@ -74,7 +74,7 @@
     <ClInclude Include="Program.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="LeafBase.h">
+    <ClInclude Include="PrimitiveFigure.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
     <ClInclude Include="Circle.h">

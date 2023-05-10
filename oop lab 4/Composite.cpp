@@ -4,10 +4,11 @@
 #include "Triangle.h"
 
 #include <iostream>
+#include <numeric>
 
 std::string Composite::m_type_name = "Composite";
 
-FigureFactory* Composite::m_primitiveFactory = nullptr;
+FigureFactory* Composite::m_primitiveFigureFactory = nullptr;
 
 Composite::Composite()
 { }
@@ -128,35 +129,16 @@ std::pair<Figure*, Figure*> Composite::getIntersection(const sf::Vector2f& posit
 
 void Composite::setActive(bool active)
 {
-	m_active = active;
+	for (auto elem : m_composition)
+	{
+		elem->setActive(active);
+	}
 }
 
 void Composite::draw(sf::RenderTarget& target, sf::RenderStates states) const
 {
 	if (!m_visible) { return; }
-	if (m_active)
-	{
-		if (pulse >= ACTIVE_OBJECT_PULSE_TIME)
-		{
-			if (pulse_state.colorEquation == sf::BlendMode::ReverseSubtract)
-			{
-				pulse_state.colorDstFactor = sf::BlendMode::Zero;
-				pulse_state.colorEquation = sf::BlendMode::Add;
-			}
-			else
-			{
-				pulse_state.colorDstFactor = sf::BlendMode::One;
-				pulse_state.colorEquation = sf::BlendMode::ReverseSubtract;
-			}
-			pulse = 0;
-		}
-		else
-		{
-			pulse++;
-		}
-		states.blendMode = pulse_state;
-	}
-	
+		
 	states.transform = states.transform.combine(t.getTransform());
 	
 	for (auto it = m_composition.begin(); it != m_composition.end(); it++)
@@ -180,6 +162,7 @@ void Composite::setTail(bool enabled)
 
 void Composite::changeColor(sf::Color offset)
 {
+	m_color_modifier += offset;
 	for (auto var : m_composition)
 	{
 		var->changeColor(offset);
@@ -188,10 +171,21 @@ void Composite::changeColor(sf::Color offset)
 
 void Composite::setColor(sf::Color color)
 {
+	m_color_modifier = color;
 	for (auto it = m_composition.begin(); it != m_composition.end(); it++)
 	{
-		(*it)->setColor(color);
+		(*it)->setColor((*it)->getColor() + m_color_modifier);
 	}
+}
+
+const sf::Color& Composite::getColor() const
+{
+	return m_color_modifier;
+	/*sf::Color color;
+	return std::accumulate(m_composition.begin(),
+		m_composition.end(),
+		color,
+		[] (Figure* a, Figure* b) { return a->getColor() + b->getColor(); });*/
 }
 
 const sf::Vector2f& Composite::getPosition() const
@@ -204,6 +198,11 @@ void Composite::setPosition(float x, float y)
 	t.setPosition(x, y);
 }
 
+void Composite::setPosition(const sf::Vector2f& position)
+{
+	setPosition(position.x, position.y);
+}
+
 const sf::Vector2f& Composite::getScale() const
 {
 	return t.getScale();
@@ -212,6 +211,11 @@ const sf::Vector2f& Composite::getScale() const
 void Composite::setScale(float x, float y)
 {
 	t.setScale(x, y);
+}
+
+void Composite::setScale(const sf::Vector2f& scale)
+{
+	setScale(scale.x, scale.y);
 }
 
 float Composite::getRotation() const
@@ -236,7 +240,7 @@ size_t Composite::getSize()
 
 void Composite::setPrimitiveFactory(FigureFactory* factory)
 {
-	m_primitiveFactory = factory;
+	m_primitiveFigureFactory = factory;
 }
 
 Composite::~Composite()
@@ -295,7 +299,7 @@ std::istream& Composite::read(std::istream& is)
 		std::cout << is.tellg() << std::endl;
 		try
 		{
-			figure = m_primitiveFactory->create(type);
+			figure = m_primitiveFigureFactory->create(type);
 		}
 		catch (const std::exception& e)
 		{

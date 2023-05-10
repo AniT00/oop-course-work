@@ -1,5 +1,5 @@
 #pragma once
-#include "LeafBase.h"
+#include "PrimitiveFigure.h"
 
 #include <unordered_map>
 #include <string>

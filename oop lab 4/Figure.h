@@ -22,23 +22,11 @@ class Figure :
 public:
 	virtual ~Figure() {};
 
-	virtual void add(Figure* figure)
-	{
-		throw std::exception("Can't add to leaf.");
-	}
+	virtual void add(Figure* figure);
 
-	virtual bool remove(Figure* figure)
-	{
-		throw std::exception("Can't remove from leaf.");
-	}
+	virtual bool remove(Figure* figure);
 
-	virtual void update()
-	{
-		if (m_move_automatically)
-		{
-			move(sf::Vector2f(-1.f, 1.f));
-		}
-	}
+	virtual void update();
 
 	virtual void setOriginByAverage();
 
@@ -74,6 +62,8 @@ public:
 
 	virtual void setColor(sf::Color color) = 0;
 
+	virtual const sf::Color& getColor() const = 0;
+
 	virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const = 0;
 
 	virtual size_t getSize();
@@ -82,9 +72,13 @@ public:
 
 	virtual void setPosition(float x, float y) = 0;
 
+	virtual void setPosition(const sf::Vector2f& position) = 0;
+
 	virtual const sf::Vector2f& getScale() const = 0;
 
 	virtual void setScale(float x, float y) = 0;
+
+	virtual void setScale(const sf::Vector2f& scale) = 0;
 
 	virtual float getRotation() const = 0;
 
@@ -110,9 +104,6 @@ protected:
 	virtual const std::string& getName() const = 0;
 
 	Figure* m_parent = nullptr;
-	bool m_active = false;
-	static sf::BlendMode pulse_state;
-	static int pulse;
 	bool m_visible = true;
 	bool m_tail;
 	bool m_move_automatically;

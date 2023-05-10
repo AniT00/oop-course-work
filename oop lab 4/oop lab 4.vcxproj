@@ -111,7 +111,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>C:\Users\Ян\Documents\Libraries\SFML-2.5.1\lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>sfml-graphics-d.lib;sfml-window-d.lib;sfml-audio-d.lib;sfml-system-d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>sfml-graphics-d.lib;sfml-window-d.lib;sfml-audio-d.lib;sfml-system-d.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -129,13 +129,14 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>sfml-graphics-d.lib;sfml-window-d.lib;sfml-audio-d.lib;sfml-system-d.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Circle.cpp" />
     <ClCompile Include="Composite.cpp" />
     <ClCompile Include="FigureFactory.cpp" />
-    <ClCompile Include="LeafBase.cpp" />
+    <ClCompile Include="PrimitiveFigure.cpp" />
     <ClCompile Include="Menu.cpp" />
     <ClCompile Include="MenuOption.cpp" />
     <ClCompile Include="Prototype.cpp" />
@@ -150,7 +151,7 @@
     <ClInclude Include="Circle.h" />
     <ClInclude Include="Composite.h" />
     <ClInclude Include="FigureFactory.h" />
-    <ClInclude Include="LeafBase.h" />
+    <ClInclude Include="PrimitiveFigure.h" />
     <ClInclude Include="Menu.h" />
     <ClInclude Include="MenuOption.h" />
     <ClInclude Include="Prototype.h" />
