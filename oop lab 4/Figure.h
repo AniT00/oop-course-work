@@ -34,7 +34,7 @@ public:
 
 	virtual void rotate(float degree) = 0;
 
-	virtual void scale(const sf::Vector2f& absolute_value, sf::Vector2f centre = sf::Vector2f()) = 0;
+	virtual void scale(const sf::Vector2f& factor, sf::Vector2f centre = sf::Vector2f()) = 0;
 
 	virtual void reset() = 0;
 
@@ -60,7 +60,7 @@ public:
 
 	virtual void setTail(bool enabled) = 0;
 
-	virtual void setColor(sf::Color color) = 0;
+	virtual void setColor(const sf::Color& color) = 0;
 
 	virtual const sf::Color& getColor() const = 0;
 

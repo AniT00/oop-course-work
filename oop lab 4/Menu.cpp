@@ -2,7 +2,7 @@
 
 #include <unordered_map>
 
-std::unordered_map<sf::Keyboard::Key, const char*> key_names(
+const std::unordered_map<sf::Keyboard::Key, const char*> menu_tools::key_names(
 	{
 		{ sf::Keyboard::A,        "A",		},
 		{ sf::Keyboard::B,        "B",		},
@@ -172,7 +172,7 @@ std::ostream& operator<<(std::ostream& os, const Menu& obj)
 	}
 	for (auto& elem : obj.m_options_order)
 	{
-		os << '(' << key_names.at(elem) << ") " << *obj.m_option_map.find(elem)->second << '\n';
+		os << '(' << menu_tools::key_names.at(elem) << ") " << *obj.m_option_map.find(elem)->second << '\n';
 	}
 	return os;
 }

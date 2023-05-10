@@ -39,14 +39,10 @@ void PrimitiveFigure::rotate(float degree)
     m_shape->rotate(degree);
 }
 
-void PrimitiveFigure::scale(const sf::Vector2f& absolute_value, sf::Vector2f centre)
+void PrimitiveFigure::scale(const sf::Vector2f& factor, sf::Vector2f centre)
 {
     auto tmp = m_shape->getGlobalBounds();
-    m_shape->scale(sf::Vector2f
-    (
-        1.f + absolute_value.x / tmp.width,
-        1.f + absolute_value.y / tmp.height
-    ));
+    m_shape->scale(factor);
 }
 
 void PrimitiveFigure::setActive(bool active)
@@ -95,7 +91,7 @@ void PrimitiveFigure::setTail(bool enabled)
     m_tail = enabled;
 }
 
-void PrimitiveFigure::setColor(sf::Color color)
+void PrimitiveFigure::setColor(const sf::Color& color)
 {
     m_shape->setFillColor(color);
 }

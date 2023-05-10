@@ -7,6 +7,11 @@
 #include <stack>
 #include <SFML/Graphics.hpp>
 
+namespace menu_tools
+{
+	extern const std::unordered_map<sf::Keyboard::Key, const char*> key_names;
+}
+
 using key_option_pair_t = std::pair<const sf::Keyboard::Key, MenuOption*>;
 // Use map because of constant accesss time.
 using menu_option_map_t = std::unordered_map<sf::Keyboard::Key, MenuOption*>;

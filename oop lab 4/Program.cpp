@@ -73,8 +73,6 @@ Program::Program()
 		{ sf::Keyboard::T, new MenuOption("Change tail visibility", [this]() { m_active_figure->changeTail(); }) },
 		{ sf::Keyboard::V, new MenuOption("Change visibility", [this]() { m_active_figure->changeVisibility(); }) },
 		{ sf::Keyboard::C, new MenuOption("Change to default", [this]() { m_active_figure->reset(); }) },
-		{ sf::Keyboard::H, new MenuOption("Change color", 
-		[this]() { /*object_manipulation_type = ObjectManipulation::COLORING;*/ printColorHint(); })}
 	};
 
 	m_edit_composite_menu = new Menu(common_options);
@@ -100,6 +98,13 @@ Program::Program()
 				setActive(m_construct_composite);
 			}) }
 		});
+	m_edit_primitive_menu->add({ { sf::Keyboard::H, new MenuOption("Change color",
+		[this]() {
+				m_initial_active_figure_color = m_active_figure->getColor();
+				m_initial_mouse_position = getMouseWorldPosition();
+				changeMode(InputMode::COLORING);
+				printColorHint();
+			})} });
 	m_edit_primitive_menu->setTitle("Primitive selected");
 
 	m_root_menu = new Menu(
@@ -165,8 +170,6 @@ void Program::handleEvents()
 		{
 		case Resized:
 			m_scene_window.setView(sf::View(sf::Vector2f(0, 0), sf::Vector2f(event.size.width, event.size.height)));
-			//sf::View v(sf::FloatRect(0, 0, event.size.width, event.size.height));
-			//v.setCenter(0.f, 0.f);
 			break;
 		case Closed:
 			m_scene_window.close();
@@ -190,7 +193,7 @@ void Program::handleInput(sf::Event event)
 	{
 	case KeyPressed:
 		using enum InputMode;
-		if (is_in(m_mode, MOVING, SCALING, ROTATING)) 
+		if (is_in(m_mode, MOVING, SCALING, ROTATING, COLORING)) 
 		{
 			if (m_mode == SCALING)
 			{
@@ -209,10 +212,18 @@ void Program::handleInput(sf::Event event)
 					m_temp_scale_transform.setScale(m_active_figure->getScale());
 				}
 			}
+			else if (m_mode == COLORING)
+			{
+				if (is_in(event.key.code, sf::Keyboard::R, sf::Keyboard::G, sf::Keyboard::B))
+				{
+					m_color_to_change = menu_tools::key_names.at(event.key.code);
+				}
+			}
 			if (event.key.code == sf::Keyboard::Escape)
 			{
 				discardlActiveFigureChanges();
 			}
+			
 			break;
 		}
 		m_menu_stack.top()->handleKey(event.key.code);
@@ -342,15 +353,16 @@ void Program::OnMouseButtonPressed()
 
 void Program::OnMouseMoved()
 {
+	using enum InputMode;
 	switch (m_mode)
 	{
-	case InputMode::MOVING:
+	case MOVING:
 	{
 		sf::Vector2f change(getMouseWorldPosition() - m_initial_mouse_position);
 		m_active_figure->setPosition(m_initial_active_figure_transform.getPosition() + change);
 		break;
 	}
-	case InputMode::ROTATING:
+	case ROTATING:
 	{
 		sf::Vector2f cur = getMouseWorldPosition();
 		cur -= m_initial_active_figure_transform.getPosition();
@@ -362,26 +374,45 @@ void Program::OnMouseMoved()
 		m_active_figure->setRotation(m_initial_active_figure_transform.getRotation() + change);
 		break;
 	}
-	case InputMode::SCALING:
+	case SCALING:
 	{
 		sf::Vector2f cur = getMouseWorldPosition();
 		cur -= m_initial_active_figure_transform.getPosition();
 		sf::Vector2f initial = m_initial_mouse_position;
 		initial -= m_initial_active_figure_transform.getPosition();
-		//sf::Vector2f initial_x = m_initial_scale_mouse_position.first;
-		//initial_x -= m_initial_active_figure_transform.getPosition();
-		//sf::Vector2f initial_y = m_initial_scale_mouse_position.second;
 		float cur_length = vector_length(cur);
 		float initial_length = vector_length(initial);
 		float factor = cur_length / initial_length;
 		//TODO class member
-		//float initial_x_length = vector_length(initial_x);
-		//float initial_y_length = vector_length(initial_y);
-		//float factor_x = cur_length / initial_x_length;
-		//float factor_y = cur_length / initial_y_length;
 		m_active_figure->setScale(
 			m_xy_pressed[0] ? m_temp_scale_transform.getScale().x * factor : m_active_figure->getScale().x,
 			m_xy_pressed[1] ? m_temp_scale_transform.getScale().y * factor : m_active_figure->getScale().y);
+		break;
+	}
+	case COLORING:
+	{
+		float change = getMouseWorldPosition().x - m_last_mouse_position.x;
+		if (change)
+		{
+			sf::Color new_change = m_active_figure->getColor();
+			printColorHint();
+			// Get first symbol. It should be 'R', 'G' or 'B'.
+			switch (m_color_to_change[0])
+			{
+			case 'R':
+				new_change.r += change;
+				break;
+			case 'G':
+				new_change.g += change;
+				break;
+			case 'B':
+				new_change.b += change;
+				break;
+			default:
+				break;
+			}
+			m_active_figure->setColor(new_change);
+		}
 		break;
 	}
 	default:
@@ -444,8 +475,12 @@ Figure* Program::selectPrototype()
 void Program::printColorHint()
 {
 	system("cls");
+	std::cout << "Press Escape to discard changes.\n";
+	std::cout << "Press left mouse button to save changes.\n";
+	std::cout << "Press specified button to begin changing corresponding color.\n";
+	std::cout << "Move mouse cursor left/right to decrease/increase color value.\n";
 	sf::Color color = m_active_figure->getColor();
-	std::cout << "(F) Red:\t" << (int)color.r << '\n';
+	std::cout << "(R) Red:\t" << (int)color.r << '\n';
 	std::cout << "(G) Green\t" << (int)color.g << '\n';
 	std::cout << "(B) Blue:\t" << (int)color.b << '\n';
 }

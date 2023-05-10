@@ -29,7 +29,7 @@ public:
 
 	void rotate(float degree) override;
 
-	void scale(const sf::Vector2f& absolute_value, sf::Vector2f centre = sf::Vector2f()) override;
+	void scale(const sf::Vector2f& factor, sf::Vector2f centre = sf::Vector2f()) override;
 
 	virtual const sf::Shape& getShape() const;
 
@@ -47,7 +47,7 @@ public:
 
 	void setTail(bool enabled) override;
 
-	void setColor(sf::Color color) override;
+	void setColor(const sf::Color& color) override;
 
 	const sf::Color& getColor() const override;
 

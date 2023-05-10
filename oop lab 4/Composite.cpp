@@ -91,12 +91,9 @@ void Composite::rotate(float degree)
 	t.rotate(degree);
 }
 
-void Composite::scale(const sf::Vector2f& absolute_value, sf::Vector2f centre)
+void Composite::scale(const sf::Vector2f& factor, sf::Vector2f centre)
 {
-	t.scale(
-		1.f + absolute_value.x / (abs(m_scale.x) * 100),
-		1.f + absolute_value.y / (abs(m_scale.y) * 100)
-	);
+	t.scale(factor);
 }
 
 const sf::Shape& Composite::getShape() const
@@ -169,23 +166,14 @@ void Composite::changeColor(sf::Color offset)
 	}
 }
 
-void Composite::setColor(sf::Color color)
+void Composite::setColor(const sf::Color& color)
 {
-	m_color_modifier = color;
-	for (auto it = m_composition.begin(); it != m_composition.end(); it++)
-	{
-		(*it)->setColor((*it)->getColor() + m_color_modifier);
-	}
+	throw std::exception("Composite can't determine it's color.");
 }
 
 const sf::Color& Composite::getColor() const
 {
-	return m_color_modifier;
-	/*sf::Color color;
-	return std::accumulate(m_composition.begin(),
-		m_composition.end(),
-		color,
-		[] (Figure* a, Figure* b) { return a->getColor() + b->getColor(); });*/
+	throw std::exception("Composite can't determine it's color.");
 }
 
 const sf::Vector2f& Composite::getPosition() const
