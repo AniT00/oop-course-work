@@ -74,6 +74,8 @@ private:
 
 	void printColorHint();
 
+	void addFigure(InputMode back_to);
+
 	void printPrototypes();
 
 	bool addFigure();
