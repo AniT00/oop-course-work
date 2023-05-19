@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -106,6 +106,7 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>C:\Users\Ян\Documents\Libraries\SFML-2.5.1\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <ShowIncludes>false</ShowIncludes>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -123,6 +124,7 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <ShowIncludes>false</ShowIncludes>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -134,8 +136,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Circle.cpp" />
+    <ClCompile Include="common_functions.cpp" />
     <ClCompile Include="Composite.cpp" />
+    <ClCompile Include="FigureEditor.cpp" />
     <ClCompile Include="FigureFactory.cpp" />
+    <ClCompile Include="Memento.cpp" />
+    <ClCompile Include="Originator.cpp" />
     <ClCompile Include="PrimitiveFigure.cpp" />
     <ClCompile Include="Menu.cpp" />
     <ClCompile Include="MenuOption.cpp" />
@@ -149,8 +155,12 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Circle.h" />
+    <ClInclude Include="common_functions.h" />
     <ClInclude Include="Composite.h" />
+    <ClInclude Include="FigureEditor.h" />
     <ClInclude Include="FigureFactory.h" />
+    <ClInclude Include="Memento.h" />
+    <ClInclude Include="Originator.h" />
     <ClInclude Include="PrimitiveFigure.h" />
     <ClInclude Include="Menu.h" />
     <ClInclude Include="MenuOption.h" />
@@ -160,6 +170,9 @@
     <ClInclude Include="Program.h" />
     <ClInclude Include="Rectangle.h" />
     <ClInclude Include="Triangle.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ClassDiagram.cd" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

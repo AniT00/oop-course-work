@@ -2,8 +2,7 @@
 
 int main()
 {	
-	Program* program = new Program;
-	program->run();
+	Program::GetInstance()->run();
 
 	return 0;
 }

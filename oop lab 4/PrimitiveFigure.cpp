@@ -101,6 +101,22 @@ const sf::Color& PrimitiveFigure::getColor() const
 	return m_shape->getFillColor();
 }
 
+sf::Vector2f PrimitiveFigure::getWorldPosition()
+{
+	sf::Vector2f pos = m_shape->getPosition();
+	if (m_parent != nullptr)
+	{
+		pos = m_parent->getWorldPosition(pos);
+	}
+	return pos;
+}
+
+sf::Vector2f PrimitiveFigure::getWorldPosition(sf::Vector2f point)
+{
+	// TODO test.
+	return m_shape->getTransform().getInverse().transformPoint(point);
+}
+
 const sf::Vector2f& PrimitiveFigure::getPosition() const
 {
 	return m_shape->getPosition();

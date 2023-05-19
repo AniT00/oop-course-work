@@ -1,13 +1,14 @@
 #pragma once
 #include "Prototype.h"
+#include "Originator.h"
 
 #include <SFML/Graphics.hpp>
 
-#ifdef FRAME_LIMIT
-	#define ACTIVE_OBJECT_PULSE_TIME FRAME_LIMIT
-#else
-	#define ACTIVE_OBJECT_PULSE_TIME 60
-#endif // FRAME_LIMIT
+//#ifdef FRAME_LIMIT
+//	#define ACTIVE_OBJECT_PULSE_TIME FRAME_LIMIT
+//#else
+//	#define ACTIVE_OBJECT_PULSE_TIME 60
+//#endif // FRAME_LIMIT
 
 class Figure;
 
@@ -15,11 +16,19 @@ std::ostream& operator<< (std::ostream& os, const Figure& obj);
 
 std::istream& operator>> (std::istream& is, Figure& obj);
 
+//class FigureMemento
+//	: public Memento
+//{
+//public:
+//
+//};
+
 class Figure :
 	public sf::Drawable,
 	public Prototype
 {
 public:
+
 	virtual ~Figure() {};
 
 	virtual void add(Figure* figure);
@@ -67,6 +76,10 @@ public:
 	virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const = 0;
 
 	virtual size_t getSize();
+
+	virtual sf::Vector2f getWorldPosition() = 0;
+
+	virtual sf::Vector2f getWorldPosition(sf::Vector2f point) = 0;
 
 	virtual const sf::Vector2f& getPosition() const = 0;
 

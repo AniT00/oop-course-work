@@ -3,6 +3,7 @@
 #define FRAME_LIMIT	60
 #define _USE_MATH_DEFINES
 #include "SceneController.h"
+#include "FigureEditor.h"
 #include "Menu.h"
 
 #include "Circle.h"
@@ -20,26 +21,34 @@
 #define HIERARCHY_WINDOW_WIDTH	320
 #define HIERARCHY_WINDOW_HEIGHT	640
 
-
-
-enum class InputMode
-{
-	MAIN,
-	ADD_FIGURE,
-	EDIT_OBJECT,
-	EXPAND_COMPOSITE,
-	UNITE_COMPOSITES,
-	VIEW_PROTOTYPES,
-	MOVING,
-	ROTATING,
-	SCALING,
-	COLORING
-};
-
 class Program
 {
-public:
+protected:
 	Program();
+
+	static Program* _instance;
+public:
+
+	enum class InputMode
+	{
+		MAIN,
+		ADD_FIGURE,
+		FIGURE_SELECTED,
+		EXPAND_COMPOSITE,
+		UNITE_COMPOSITES,
+		VIEW_PROTOTYPES,
+		EDIT_FIGURE,
+		MOVING,
+		ROTATING,
+		SCALING,
+		COLORING
+	};
+
+	Program(Program& other) = delete;
+
+	void operator=(const Program&) = delete;
+
+	static Program* GetInstance();
 
 	void run();
 
@@ -48,13 +57,11 @@ public:
 private:
 	void handleEvents();
 
-	void handleInput(sf::Event event);
+	void handleInput(const sf::Event& event);
 
 	void OnMouseButtonReleased();
 
 	void OnMouseButtonPressed();
-
-	void OnMouseMoved();
 
 	void changeMode(InputMode _mode);
 
@@ -64,7 +71,7 @@ private:
 
 	Figure* selectPrototype();
 
-	void printColorHint();
+	void printColorHint(bool shortened = false);
 
 	void addFigure(InputMode back_to);
 
@@ -86,15 +93,31 @@ private:
 
 	void deleteActive();
 
-	void discardlActiveFigureChanges();
-
 	void endModifyingActiveFigure();
+
+	void colorize_figure();
+
+	void finish_composite();
+
+	void scale_figure();
+
+	void rotate_figure();
+
+	void move_figure();
+
+	void try_add_figure();
+
+	//void unite_composites();
 
 	sf::Vector2f getMouseWorldPosition();
 
 	sf::RenderWindow m_scene_window;
 
 	SceneController* m_sceneController;
+
+	FigureEditor m_figureEditor;
+
+	FigureEditor::Context m_figureEditor_context;
 
 	FigureFactory m_primitiveFigureFactory;
 
@@ -110,17 +133,6 @@ private:
 
 	sf::Vector2<bool> m_draw_axis;
 
-	// Stores initial transform to get back in case user wants to discard changes.
-	sf::Transformable m_initial_active_figure_transform;
-	sf::Color m_initial_active_figure_color;
-	// Stores temp changes that wasn't confirmed.
-	sf::Transformable m_temp_scale_transform;
-	sf::Color m_temp_color;
-
-	sf::Vector2f m_initial_mouse_position;
-	sf::Vector2f m_last_mouse_position;
-	sf::Vector2f m_mouse_click_position;
-
 	const char* m_color_to_change = "";
 
 	// To scale by corresponding axis.
@@ -134,8 +146,6 @@ private:
 
 	std::stack<Menu*> m_menu_stack;
 
-	Menu* m_edit_composite_menu;
-	Menu* m_edit_primitive_menu;
-	Menu* m_root_menu;
+	std::unordered_map<std::string, Menu*> m_menus;
 };
 

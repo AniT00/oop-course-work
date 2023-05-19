@@ -26,7 +26,7 @@ Composite::Composite(const Composite& obj)
     {
         add((Figure*)figure->clone());
     }
-	t = obj.t;
+	m_transform = obj.m_transform;
     /*m_scale = obj.m_scale;
     m_size = obj.m_size;
     m_position = obj.m_position;*/
@@ -77,7 +77,7 @@ void Composite::setOriginByAverage()
 
 void Composite::move(const sf::Vector2f& offset)
 {
-	t.move(offset);
+	m_transform.move(offset);
 }
 
 void Composite::reset()
@@ -88,12 +88,12 @@ void Composite::reset()
 
 void Composite::rotate(float degree)
 {
-	t.rotate(degree);
+	m_transform.rotate(degree);
 }
 
 void Composite::scale(const sf::Vector2f& factor, sf::Vector2f centre)
 {
-	t.scale(factor);
+	m_transform.scale(factor);
 }
 
 const sf::Shape& Composite::getShape() const
@@ -112,7 +112,7 @@ std::pair<Figure*, Figure*> Composite::getIntersection(const sf::Vector2f& posit
 {
 	if (m_composition.size() == 0) { throw std::exception("Composition is empty"); }
 	
-	auto p = t.getInverseTransform().transformPoint(position);
+	auto p = m_transform.getInverseTransform().transformPoint(position);
 	for (auto it = m_composition.rbegin(); it != m_composition.rend(); it++)
 	{
 		std::pair<Figure*, Figure*> intersected = (*it)->getIntersection(p);
@@ -136,7 +136,7 @@ void Composite::draw(sf::RenderTarget& target, sf::RenderStates states) const
 {
 	if (!m_visible) { return; }
 		
-	states.transform = states.transform.combine(t.getTransform());
+	states.transform = states.transform.combine(m_transform.getTransform());
 	
 	for (auto it = m_composition.begin(); it != m_composition.end(); it++)
 	{
@@ -176,14 +176,34 @@ const sf::Color& Composite::getColor() const
 	throw std::exception("Composite can't determine it's color.");
 }
 
+sf::Vector2f Composite::getWorldPosition()
+{
+	sf::Vector2f pos = m_transform.getPosition();
+	if (m_parent != nullptr)
+	{
+		pos = m_parent->getWorldPosition(pos);
+	}
+	return pos;
+}
+
+sf::Vector2f Composite::getWorldPosition(sf::Vector2f point)
+{
+	point = m_transform.getTransform().transformPoint(point);
+	if (m_parent != nullptr)
+	{
+		point = m_parent->getWorldPosition(point);
+	}
+	return point;
+}
+
 const sf::Vector2f& Composite::getPosition() const
 {
-	return t.getPosition();
+	return m_transform.getPosition();
 }
 
 void Composite::setPosition(float x, float y)
 {
-	t.setPosition(x, y);
+	m_transform.setPosition(x, y);
 }
 
 void Composite::setPosition(const sf::Vector2f& position)
@@ -193,12 +213,12 @@ void Composite::setPosition(const sf::Vector2f& position)
 
 const sf::Vector2f& Composite::getScale() const
 {
-	return t.getScale();
+	return m_transform.getScale();
 }
 
 void Composite::setScale(float x, float y)
 {
-	t.setScale(x, y);
+	m_transform.setScale(x, y);
 }
 
 void Composite::setScale(const sf::Vector2f& scale)
@@ -208,17 +228,17 @@ void Composite::setScale(const sf::Vector2f& scale)
 
 float Composite::getRotation() const
 {
-	return t.getRotation();
+	return m_transform.getRotation();
 }
 
 void Composite::setRotation(float angle)
 {
-	t.setRotation(angle);
+	m_transform.setRotation(angle);
 }
 
 const sf::Transform& Composite::getTransform() const
 {
-	return t.getTransform();
+	return m_transform.getTransform();
 }
 
 size_t Composite::getSize()
@@ -246,10 +266,10 @@ std::ostream& Composite::write(std::ostream& os) const
 	os.write(name.c_str(), name.size());
 	os << '\n';
 
-	os.write((char*)&t.getPosition(), sizeof(sf::Vector2f));
-	float rotation = t.getRotation();
+	os.write((char*)&m_transform.getPosition(), sizeof(sf::Vector2f));
+	float rotation = m_transform.getRotation();
 	os.write((char*)&rotation, sizeof(float));
-	os.write((char*)&t.getScale(), sizeof(sf::Vector2f));
+	os.write((char*)&m_transform.getScale(), sizeof(sf::Vector2f));
 	// Write a number of elements composite consist of.
 	size_t size = m_composition.size();
 	os.write((char*)&size, sizeof(size));

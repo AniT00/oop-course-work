@@ -1,0 +1,122 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="Composite" Collapsed="true">
+    <Position X="5.25" Y="2.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>hCAAIIAMAKAiAGCEAHIQAAADCAAgAAgCAQBEkAcKAAk=</HashCode>
+      <FileName>Composite.h</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Field Name="m_primitiveFigureFactory" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="Figure" Collapsed="true">
+    <Position X="4" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>hCAAJIgEAIACAGCEEGNQAAACCAAgoAACAQAEgAROAAM=</HashCode>
+      <FileName>Figure.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Circle" Collapsed="true">
+    <Position X="0.5" Y="4" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAEAAAAAAAAAAAAAAABAAgAAAAAAABEEAAAAAA=</HashCode>
+      <FileName>Circle.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="FigureFactory" Collapsed="true">
+    <Position X="8" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAQgAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAA=</HashCode>
+      <FileName>FigureFactory.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Menu" Collapsed="true">
+    <Position X="16.25" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAACBABEAAAAQAAAAAAAAIAAAAAgAAAAACAEA=</HashCode>
+      <FileName>Menu.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MenuOption" Collapsed="true">
+    <Position X="16.25" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>ACAAAAAAAAAAAgEAIAAECAAAAAAAAAAAAAAAAAAAACA=</HashCode>
+      <FileName>MenuOption.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="PrimitiveFigure" Collapsed="true">
+    <Position X="2.25" Y="2.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>gCAIIIAAAACCAEKAAGIQAIAKCAAgEAACAQAAgAYIAAA=</HashCode>
+      <FileName>PrimitiveFigure.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Prototype" Collapsed="true">
+    <Position X="4" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAA=</HashCode>
+      <FileName>Prototype.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Rectangle" Collapsed="true">
+    <Position X="4" Y="4" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAEAAAAAAAAAAAAAAABAAAgAAAAAABEEAAAAAA=</HashCode>
+      <FileName>Rectangle.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Program" Collapsed="true">
+    <Position X="10.25" Y="2.75" Width="1.5" />
+    <NestedTypes>
+      <Enum Name="Program::InputMode" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>Program.h</NewMemberFileName>
+        </TypeIdentifier>
+      </Enum>
+    </NestedTypes>
+    <TypeIdentifier>
+      <HashCode>gIIUCwIRAACgIBAawAAEwIAIjEIBAQAqAZAhAgQJAgA=</HashCode>
+      <FileName>Program.h</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Field Name="m_sceneController" />
+      <Field Name="m_primitiveFigureFactory" />
+      <Field Name="m_figureEditor" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="SceneController" Collapsed="true">
+    <Position X="8" Y="0.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>EEAAAAAAAACAACIECMIAAAAABAEAAAAAAQAwAAAGAAE=</HashCode>
+      <FileName>SceneController.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Triangle" Collapsed="true">
+    <Position X="2.25" Y="4" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAEAAAAAAABAAAAAAABAAAAAAAAAABEEAAAAAA=</HashCode>
+      <FileName>Triangle.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="FigureEditor" Collapsed="true">
+    <Position X="12.5" Y="1.75" Width="1.5" />
+    <NestedTypes>
+      <Enum Name="FigureEditor::EditMode" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>FigureEditor.h</NewMemberFileName>
+        </TypeIdentifier>
+      </Enum>
+      <Struct Name="FigureEditor::Context" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>FigureEditor.h</NewMemberFileName>
+        </TypeIdentifier>
+      </Struct>
+    </NestedTypes>
+    <TypeIdentifier>
+      <HashCode>oIAAAgAAAQAEACJAgQAIUAAJkBACAAAgAAiAAAABAgA=</HashCode>
+      <FileName>FigureEditor.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>

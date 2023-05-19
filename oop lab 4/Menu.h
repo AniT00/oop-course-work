@@ -1,5 +1,5 @@
 #pragma once
-
+#include "common_functions.h"
 #include "MenuOption.h"
 
 #include <unordered_map>
@@ -7,14 +7,12 @@
 #include <stack>
 #include <SFML/Graphics.hpp>
 
-namespace menu_tools
-{
-	extern const std::unordered_map<sf::Keyboard::Key, const char*> key_names;
-}
 
-using key_option_pair_t = std::pair<const sf::Keyboard::Key, MenuOption*>;
+
+using key_option_pair_t = std::pair<const sf::Keyboard::Key, std::shared_ptr<MenuOption>>;
 // Use map because of constant accesss time.
-using menu_option_map_t = std::unordered_map<sf::Keyboard::Key, MenuOption*>;
+// Use shared_ptr, because MenuOption can be used in different Menu objects.
+using menu_option_map_t = std::unordered_map<sf::Keyboard::Key, std::shared_ptr<MenuOption>>;
 
 class Menu;
 
@@ -38,6 +36,8 @@ public:
 	const std::string& getTitle() const;
 
 	void handleKey(sf::Keyboard::Key key);
+
+	~Menu();
 private:
 	std::string m_title;
 

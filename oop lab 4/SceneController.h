@@ -14,9 +14,8 @@ protected:
 	SceneController(sf::RenderWindow* window);
 
 	static SceneController* Controller_;
-
-
 public:
+	// Memento class
 	class Snapshot
 	{
 	private:

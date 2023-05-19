@@ -4,11 +4,10 @@
 
 SceneController* SceneController::Controller_ = nullptr;
 
-
 SceneController::SceneController(sf::RenderWindow* window)
 {
 	m_window_target = window;
-	m_axis.setSize(sf::Vector2f(2.f, std::numeric_limits<float>().max() / 2e20));
+	m_axis.setSize(sf::Vector2f(2.f, 1e5));
 	m_axis.setOrigin(m_axis.getSize() / 2.f);
 }
 
@@ -66,13 +65,13 @@ void SceneController::drawAxis(sf::Vector2<bool> axis_to_draw)
 {
 	if (axis_to_draw.x)
 	{
-		m_axis.setRotation(0);
+		m_axis.setRotation(90);
 		m_axis.setFillColor(sf::Color::Red);
 		m_window_target->draw(m_axis);
 	}
 	if (axis_to_draw.y)
 	{
-		m_axis.setRotation(90);
+		m_axis.setRotation(0);
 		m_axis.setFillColor(sf::Color::Green);
 		m_window_target->draw(m_axis);
 	}

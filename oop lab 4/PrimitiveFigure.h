@@ -11,6 +11,7 @@ public:
 	*/
 	PrimitiveFigure(sf::Shape* shape);
 
+
 	void move(const sf::Vector2f& offset) override;
 
 	void rememberTransform();
@@ -34,6 +35,10 @@ public:
 	void setColor(const sf::Color& color) override;
 	
 	const sf::Color& getColor() const override;
+
+	sf::Vector2f getWorldPosition() override;
+
+	sf::Vector2f getWorldPosition(sf::Vector2f point) override;
 
 	const sf::Vector2f& getPosition() const override;
 
