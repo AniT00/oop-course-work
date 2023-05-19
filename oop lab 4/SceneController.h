@@ -16,30 +16,32 @@ protected:
 	static SceneController* Controller_;
 public:
 	// Memento class
-	class Snapshot
+	class Memento
 	{
 	private:
 		std::list<Figure*> m_figures;
 	public:
-		Snapshot(std::istream& file);
+		Memento(std::istream& file);
 
-		Snapshot(std::list<Figure*> figures);
+		Memento(std::list<Figure*> figures);
 
 		const std::list<Figure*>& getFigures() const;
 
-		friend std::ostream& operator<<(std::ostream& os, const Snapshot& obj)
+		friend std::ostream& operator<<(std::ostream& os, const Memento& obj)
 		{
+			os << "[\n";
 			for (auto figure : obj.m_figures)
 			{
-				os << *figure << '\n';
+				figure->write(os, 1);
+				os << '\n';
 			}
-			return os;
+			return os << ']';
 		}
 	};
 
-	Snapshot save();
+	Memento save();
 
-	void restore(const Snapshot& snapshot);
+	void restore(const Memento& snapshot);
 
 	void add(Figure* figure);
 

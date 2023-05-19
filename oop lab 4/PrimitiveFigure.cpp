@@ -8,6 +8,21 @@ PrimitiveFigure::PrimitiveFigure(sf::Shape* shape)
 	m_shape->setOutlineColor(sf::Color::Red);
 }
 
+Figure::Memento* PrimitiveFigure::save() const
+{
+	return new Memento(
+		m_shape->getPosition(),
+		m_shape->getRotation(),
+		m_shape->getScale());
+}
+
+void PrimitiveFigure::restore(const Memento* memento)
+{
+	m_shape->setPosition(memento->getPosition());
+	m_shape->setRotation(memento->getRotation());
+	m_shape->setScale(memento->getScale());
+}
+
 void PrimitiveFigure::move(const sf::Vector2f& offset)
 {
     rememberTransform();
@@ -194,24 +209,35 @@ PrimitiveFigure::~PrimitiveFigure()
     delete m_shape;
 }
 
-std::ostream& PrimitiveFigure::write(std::ostream& os) const
+std::ostream& PrimitiveFigure::write(std::ostream& os, short tabSize) const
 {
-	os << '\n';
-	const std::string& name = getName();
-	os.write(name.c_str(), name.size());
-	os << '\n';
+	std::string tab(tabSize, '\t');
 
-	sf::Vector2f position = m_shape->getPosition();
-	os.write((char*)&position, sizeof(sf::Vector2f));
+	os << tab << '\"' << getName() << '\"' << ": {\n";
+	tab += '\t';
 
-	float rotation = m_shape->getRotation();
-	os.write((char*)&rotation, sizeof(float));
+	const sf::Vector2f& position = m_shape->getPosition();
+	os << tab << "\"position\": {\n";
+	os << tab << "\t\"x\": " << position.x << '\n';
+	os << tab << "\t\"y\": " << position.y << '\n';
+	os << tab << "}\n";
 
-	sf::Vector2f scale = m_shape->getScale();
-	os.write((char*)&scale, sizeof(sf::Vector2f));
+	os << tab << "\"rotation\": " << m_shape->getRotation() << '\n';
+
+	const sf::Vector2f& scale = m_shape->getScale();
+	os << tab << "\"scale\": {\n";
+	os << tab << "\t\"x\": " << scale.x << '\n';
+	os << tab << "\t\"y\": " << scale.y << '\n';
+	os << tab << "}\n";
 
 	const sf::Color& color = m_shape->getFillColor();
-	os.write((char*)&color, sizeof(sf::Color));
+	os << tab << "\"color\": {\n";
+	os << tab << "\t\"r\": " << (int)color.r << "\n";
+	os << tab << "\t\"g\": " << (int)color.g << "\n";
+	os << tab << "\t\"b\": " << (int)color.b << "\n";
+	os << tab << "}\n";
+	tab = tab.substr(0, tabSize);
+	os << tab << '}';
 
 	return os;
 }
@@ -219,17 +245,64 @@ std::ostream& PrimitiveFigure::write(std::ostream& os) const
 std::istream& PrimitiveFigure::read(std::istream& is)
 {
 	sf::Vector2f position;
-	is.read((char*)&position, sizeof(sf::Vector2f));
-
-	float rotation = m_shape->getRotation();
-	is.read((char*)&rotation, sizeof(float));
-
+	float rotation = 0;
 	sf::Vector2f scale;
-	is.read((char*)&scale, sizeof(sf::Vector2f));
-
 	sf::Color color;
-	is.read((char*)&color, sizeof(sf::Color));
+	std::string v;
+	// Skip "{" line
+	is.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 
+	// Skip "position": {" line
+	is.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+	// Skip to x value
+	is.ignore(std::numeric_limits<std::streamsize>::max(), ':');
+	is >> position.x;
+	// Skip to y value
+	is.ignore(std::numeric_limits<std::streamsize>::max(), ':');
+	is >> position.y;
+	// Skip "}" line
+	is.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
+	// Skip to rotation value
+	is.ignore(std::numeric_limits<std::streamsize>::max(), ':');
+	is >> rotation;
+	// Skip empty line
+	is.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
+	// Skip "scale": {" line
+	is.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+	// Skip to x value
+	is.ignore(std::numeric_limits<std::streamsize>::max(), ':');
+	is >> scale.x;
+	// Skip to y value
+	is.ignore(std::numeric_limits<std::streamsize>::max(), ':');
+	is >> scale.y;
+	// Skip empty line and "}" line
+	is.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+	is.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
+	// Skip "color": {" line
+	is.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+	// Skip to r value
+	int value;
+	is.ignore(std::numeric_limits<std::streamsize>::max(), ':');
+	is >> value;
+	color.r = value;
+	// Skip to g value
+	is.ignore(std::numeric_limits<std::streamsize>::max(), ':');
+	is >> value;
+	color.g = value;
+	// Skip to b value
+	is.ignore(std::numeric_limits<std::streamsize>::max(), ':');
+	is >> value;
+	color.b = value;
+	// Skip empty and "}" lines
+	is.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+	is.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
+	// Skip "}" line
+	is.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+	
 	m_shape->setPosition(position);
 	m_shape->setRotation(rotation);
 	m_shape->setScale(scale);

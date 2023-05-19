@@ -22,7 +22,7 @@ public:
 		Program* m_program_instance;
 		Menu* m_edit_menu;
 		sf::Vector2f m_mouse_world_position;
-		std::function<void()> m_quit_callback;
+		std::function<void()> m_after_quit_callback;
 		sf::Vector2<bool>* m_draw_axis;
 
 		Context(Program* program_instance, std::function<void()> quit_callback, sf::Vector2<bool>* draw_axis);
@@ -30,11 +30,7 @@ public:
 
 	FigureEditor(Context* context);
 
-	void setInitialTransform(sf::Transformable transform);
-
-	void setInitialMousePosition(const sf::Vector2f& pos);
-
-	void activate(EditMode mode);
+	void activate(EditMode mode, const Figure::Memento* memento = nullptr);
 
 	EditMode getMode();
 
@@ -58,6 +54,8 @@ private:
 	EditMode m_mode = EditMode::NONE;
 
 	sf::Vector2<bool> m_draw_axis;
+
+	const Figure::Memento* m_initial_figure_state = nullptr;
 
 	// Stores initial transform to get back in case user wants to discard changes.
 	sf::Transformable m_initial_active_figure_transform;

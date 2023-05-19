@@ -140,8 +140,6 @@
     <ClCompile Include="Composite.cpp" />
     <ClCompile Include="FigureEditor.cpp" />
     <ClCompile Include="FigureFactory.cpp" />
-    <ClCompile Include="Memento.cpp" />
-    <ClCompile Include="Originator.cpp" />
     <ClCompile Include="PrimitiveFigure.cpp" />
     <ClCompile Include="Menu.cpp" />
     <ClCompile Include="MenuOption.cpp" />
@@ -159,8 +157,6 @@
     <ClInclude Include="Composite.h" />
     <ClInclude Include="FigureEditor.h" />
     <ClInclude Include="FigureFactory.h" />
-    <ClInclude Include="Memento.h" />
-    <ClInclude Include="Originator.h" />
     <ClInclude Include="PrimitiveFigure.h" />
     <ClInclude Include="Menu.h" />
     <ClInclude Include="MenuOption.h" />

@@ -11,12 +11,12 @@ SceneController::SceneController(sf::RenderWindow* window)
 	m_axis.setOrigin(m_axis.getSize() / 2.f);
 }
 
-SceneController::Snapshot SceneController::save()
+SceneController::Memento SceneController::save()
 {
-	return Snapshot(m_figures);
+	return Memento(m_figures);
 }
 
-void SceneController::restore(const Snapshot& snapshot)
+void SceneController::restore(const Memento& snapshot)
 {
 	m_figures.clear();
 	for (auto figure : snapshot.getFigures())
@@ -112,21 +112,31 @@ SceneController::~SceneController()
 	}
 }
 
-SceneController::Snapshot::Snapshot(std::istream& file)
+SceneController::Memento::Memento(std::istream& file)
 {
+	// Skip "[" line
+	file.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 	while (file.peek() != EOF)
 	{
+		int len = file.tellg();
+		// Read line
+		std::string line;
+		std::getline(file, line);
+		if (line.find(']') != line.npos)
+		{
+			break;
+		} // Return to position before read.
+		file.seekg(len, std::ios_base::beg);
+
 		// Already know this will be composite. Skip type name.
-		file.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-		file.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+		file.ignore(std::numeric_limits<std::streamsize>::max(), '{');
 		Composite* composite = new Composite();
 		m_figures.push_back(composite);
 		file >> *composite;
-		file.get(); // '\n'
 	}
 }
 
-SceneController::Snapshot::Snapshot(std::list<Figure*> figures)
+SceneController::Memento::Memento(std::list<Figure*> figures)
 {
 	for (auto figure : figures)
 	{
@@ -134,7 +144,7 @@ SceneController::Snapshot::Snapshot(std::list<Figure*> figures)
 	}
 }
 
-const std::list<Figure*>& SceneController::Snapshot::getFigures() const
+const std::list<Figure*>& SceneController::Memento::getFigures() const
 {
 	return m_figures;
 }

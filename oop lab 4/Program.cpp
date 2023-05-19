@@ -13,7 +13,7 @@ Program* Program::_instance = nullptr;
 Program::Program()
 	: m_scene_window(sf::VideoMode(SCENE_WINDOW_WIDTH, SCENE_WINDOW_HEIGHT), "Scene"),
 	m_figureEditor(&m_figureEditor_context),
-	m_figureEditor_context(this, std::bind(&Program::endModifyingActiveFigure, this), &m_draw_axis)
+	m_figureEditor_context(this, std::bind(&Program::finishModifyingActiveFigure, this), &m_draw_axis)
 {
 	m_scene_window.setFramerateLimit(FRAME_LIMIT);
 
@@ -26,24 +26,30 @@ Program::Program()
 	std::list<key_option_pair_t> common_options
 	{
 		{ sf::Keyboard::Delete, std::make_shared<MenuOption>("Delete composite", [this]() { deleteActive(); }) },
-		{ sf::Keyboard::A, std::make_shared<MenuOption>("Add figure", [this]() {
-			addFigure();
-			openMenu(m_menus["Edit primitive"]);
-			})},
-		{ sf::Keyboard::M, std::make_shared<MenuOption>("Move", std::bind(&Program::move_figure, this)) },
-		{ sf::Keyboard::R, std::make_shared<MenuOption>("Rotate", std::bind(&Program::rotate_figure, this)) },
-		{ sf::Keyboard::S, std::make_shared<MenuOption>("Scale", std::bind(&Program::scale_figure, this)) },
+		{ sf::Keyboard::A, std::make_shared<MenuOption>("Add figure", [this]() 
+			{
+				addFigure();
+				if (m_menu_stack.top() != m_menus["Edit primitive"])
+				{
+					openMenu(m_menus["Edit primitive"]);
+				}
+			}) },
+		{ sf::Keyboard::M, std::make_shared<MenuOption>("Move", std::bind(&Program::startMovingFigure, this)) },
+		{ sf::Keyboard::R, std::make_shared<MenuOption>("Rotate", std::bind(&Program::startRotatingFigure, this)) },
+		{ sf::Keyboard::S, std::make_shared<MenuOption>("Scale", std::bind(&Program::startScalingFigure, this)) },
 		{ sf::Keyboard::L, std::make_shared<MenuOption>("Move object automatically", [this]() { m_active_figure->changeMovement(); }) },
 		{ sf::Keyboard::T, std::make_shared<MenuOption>("Change tail visibility", [this]() { m_active_figure->changeTail(); }) },
 		{ sf::Keyboard::V, std::make_shared<MenuOption>("Change visibility", [this]() { m_active_figure->changeVisibility(); }) },
 		{ sf::Keyboard::C, std::make_shared<MenuOption>("Change to default", [this]() { m_active_figure->reset(); }) },
+		{ sf::Keyboard::Z, std::make_shared<MenuOption>("Undo", [this]() { undo(); }) },
+		{ sf::Keyboard::Y, std::make_shared<MenuOption>("Redo", [this]() { redo(); }) },
 	};
 
 
 	Menu* edit_composite_menu = new Menu(common_options);
 	edit_composite_menu->setTitle("Composite selected.");
 	edit_composite_menu->add(0, {
-		{ sf::Keyboard::Escape, std::make_shared<MenuOption>("Finish composition creation", std::bind(&Program::finish_composite, this))}
+		{ sf::Keyboard::Escape, std::make_shared<MenuOption>("Finish composition creation", std::bind(&Program::finishComposite, this))}
 		});
 	edit_composite_menu->add({
 		{ sf::Keyboard::P, std::make_shared<MenuOption>("Add to prototype collection", std::bind(&Program::createPrototype, this)) }
@@ -64,7 +70,7 @@ Program::Program()
 
 	Menu* root_menu = new Menu(
 		{
-			{ sf::Keyboard::A, std::make_shared<MenuOption>("Add composite", std::bind(&Program::try_add_figure, this)) },
+			{ sf::Keyboard::A, std::make_shared<MenuOption>("Add composite", std::bind(&Program::tryAddFigure, this)) },
 			{ sf::Keyboard::U, std::make_shared<MenuOption>("Unity with another composite",[this]() { changeMode(InputMode::UNITE_COMPOSITES); })},
 			{ sf::Keyboard::S, std::make_shared<MenuOption>("Save scene",[this]() { saveScene(); printMenu(); })},
 			{ sf::Keyboard::L, std::make_shared<MenuOption>("Load scene",[this]() { loadScene(); printMenu(); }) }
@@ -88,13 +94,11 @@ Program::Program()
 
 void Program::colorize_figure()
 {
-	m_figureEditor.setInitialMousePosition(getMouseWorldPosition());
-	m_figureEditor.activate(FigureEditor::EditMode::COLORING);
-	changeMode(InputMode::EDIT_FIGURE);
+	startModifyingFigure("", FigureEditor::EditMode::COLORING);
 	printColorHint();
 }
 
-void Program::finish_composite()
+void Program::finishComposite()
 {
 	closeMenu();
 	m_construct_composite = nullptr;
@@ -102,41 +106,79 @@ void Program::finish_composite()
 	changeMode(InputMode::MAIN);
 }
 
-void Program::scale_figure()
+void Program::startScalingFigure()
 {
-	std::cout << "Press Escape to discard changes.\n";
-	std::cout << "Press left mouse button to save changes.\n";
-	std::cout << "Press X to switch scaling horizontally.\n";
-	std::cout << "Press Y to switch scaling horizontally.";
-	m_figureEditor.setInitialMousePosition(getMouseWorldPosition());
-	m_figureEditor.activate(FigureEditor::EditMode::SCALING);
+	std::stringstream s;
+	s << "Press Escape to discard changes.\n";
+	s << "Press left mouse button to save changes.\n";
+	s << "Press X to switch scaling horizontally.\n";
+	s << "Press Y to switch scaling horizontally.";
+	startModifyingFigure(s.str(), FigureEditor::EditMode::SCALING);
+}
+
+void Program::startRotatingFigure()
+{
+	std::stringstream s;
+	s << "Press Escape to discard changes.\n";
+	s << "Press left mouse button to save changes.";
+	startModifyingFigure(s.str(), FigureEditor::EditMode::ROTATING);
+}
+
+void Program::startMovingFigure()
+{
+	std::stringstream s;
+	s << "Press Escape to discard changes.\n";
+	s << "Press left mouse button to save changes.";
+	startModifyingFigure(s.str(), FigureEditor::EditMode::MOVING);
+}
+
+void Program::startModifyingFigure(std::string hint, FigureEditor::EditMode mode)
+{
+	std::cout << hint;
+	m_figureEditor_context.m_mouse_world_position = getMouseWorldPosition();
+	const Figure::Memento* memento = m_active_figure->save();
+	m_figureEditor.activate(mode, memento);
+	//m_undo.push(memento);
+	while (!m_redo.empty())
+	{
+		delete m_redo.top();
+		m_redo.pop();
+	}
 	changeMode(InputMode::EDIT_FIGURE);
 }
 
-void Program::rotate_figure()
-{
-	std::cout << "Press Escape to discard changes.\n";
-	std::cout << "Press left mouse button to save changes.";
-	m_figureEditor.setInitialMousePosition(getMouseWorldPosition());
-	m_figureEditor.activate(FigureEditor::EditMode::ROTATING);
-	changeMode(InputMode::EDIT_FIGURE);
-}
-
-void Program::move_figure()
-{
-	std::cout << "Press Escape to discard changes.\n";
-	std::cout << "Press left mouse button to save changes.";
-	m_figureEditor.setInitialMousePosition(getMouseWorldPosition());
-	m_figureEditor.activate(FigureEditor::EditMode::MOVING);
-	changeMode(InputMode::EDIT_FIGURE);
-}
-
-void Program::try_add_figure()
+void Program::tryAddFigure()
 {
 	if (addFigure())
 	{
 		openMenu(m_menus["Edit composite"]);
 		changeMode(InputMode::FIGURE_SELECTED);
+	}
+	else
+	{
+		printMenu();
+	}
+}
+
+void Program::undo()
+{
+	//if (m_first_undo) { m_redo.push(m_active_figure->save()); }
+	if (m_undo.size() > 1)
+	{
+		m_redo.push(m_undo.top());
+		m_undo.pop();
+		m_active_figure->restore(m_undo.top());
+	}
+}
+
+void Program::redo()
+{
+	if (!m_redo.empty())
+	{
+		const Figure::Memento* state = m_redo.top();
+		m_active_figure->restore(state);
+		m_undo.push(state);
+		m_redo.pop();
 	}
 }
 
@@ -205,6 +247,7 @@ void Program::handleEvents()
 			m_scene_window.close();
 			break;
 		case KeyPressed:
+		case KeyReleased:
 		case MouseButtonPressed:
 		case MouseButtonReleased:
 		case MouseMoved:
@@ -213,7 +256,7 @@ void Program::handleEvents()
 			{
 				if (!m_figureEditor.handleInput(event))
 				{
-					//handleInput(event);
+					handleInput(event);
 				}
 			}
 			else
@@ -232,7 +275,7 @@ void Program::handleInput(const sf::Event& event)
 	using enum sf::Event::EventType;
 	switch (event.type)
 	{
-	case KeyPressed:
+	case KeyReleased:
 		m_menu_stack.top()->handleKey(event.key.code);
 		break;
 	case MouseButtonPressed:
@@ -358,6 +401,16 @@ void Program::changeMode(InputMode _mode)
 
 void Program::setActive(Figure* figure)
 {
+	if (m_active_figure == figure) { return; }
+	m_first_undo = true;
+	while (!m_undo.empty())
+	{
+		m_undo.pop();
+	}
+	while (!m_redo.empty())
+	{
+		m_redo.pop();
+	}
 	if (m_active_figure != nullptr)
 		m_active_figure->setActive(false);
 	m_active_figure = figure;
@@ -365,6 +418,7 @@ void Program::setActive(Figure* figure)
 	{
 		m_active_figure->setActive(true);
 		m_figureEditor.setFigure(m_active_figure);
+		m_undo.push(m_active_figure->save());
 	}
 }
 
@@ -420,25 +474,6 @@ void Program::printColorHint(bool shortened)
 	std::cout << "(R) Red:\t" << (int)color.r << '\n';
 	std::cout << "(G) Green\t" << (int)color.g << '\n';
 	std::cout << "(B) Blue:\t" << (int)color.b << '\n';
-}
-
-void Program::addFigure(InputMode back_to)
-{
-	printPrototypes();
-	//TODO
-	//changeMode(InputMode::VIEW_PROTOTYPES);
-	// Primitive can not exist by himself on the scene.
-	if (m_construct_composite == nullptr)
-	{
-		m_construct_composite = new Composite();
-		setActive(m_construct_composite);
-	}
-	Figure* new_figure = selectPrototype();
-	if (new_figure != nullptr)
-	{
-		m_construct_composite->add(new_figure);
-	}
-	changeMode(back_to);
 }
 
 void Program::printPrototypes()
@@ -515,8 +550,8 @@ void Program::saveScene()
 			break;
 		}
 	}
-	std::ofstream scene_file(file_name, std::ios_base::binary | std::ios_base::trunc);
-	SceneController::Snapshot snapshot = m_sceneController->save();
+	std::ofstream scene_file(file_name, std::ios_base::trunc);
+	SceneController::Memento snapshot = m_sceneController->save();
 	scene_file << snapshot;
 }
 
@@ -528,11 +563,12 @@ void Program::loadScene()
 	{
 		std::cout << "Enter file name (witout extension) (leave empty to cancel): ";
 		std::getline(std::cin, file_name);
-		file_name += ".scene";
 		if (file_name.empty())
 		{
 			return;
 		}
+		file_name += ".scene";
+		
 		std::fstream file(file_name, std::ios_base::in);
 		if (file.good())
 		{
@@ -542,7 +578,7 @@ void Program::loadScene()
 		std::cout << "\nFile does not exists.\n";
 	}
 	std::ifstream scene_file(file_name, std::ios_base::binary);
-	SceneController::Snapshot snapshot(scene_file);
+	SceneController::Memento snapshot(scene_file);
 	m_sceneController->restore(snapshot);
 }
 
@@ -583,14 +619,15 @@ void Program::deleteActive()
 		// TODO
 		m_construct_composite->remove(m_active_figure);
 	}
-	delete m_active_figure;
 	setActive(nullptr);
+	delete m_active_figure;
 	//We're in edit mode, go back.
 	m_menu_stack.pop();
 }
 
-void Program::endModifyingActiveFigure()
+void Program::finishModifyingActiveFigure()
 {
+	m_undo.push(m_active_figure->save());
 	printMenu();
 	changeMode(InputMode::FIGURE_SELECTED);
 }

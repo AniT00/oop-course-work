@@ -1,6 +1,5 @@
 #pragma once
 #include "Prototype.h"
-#include "Originator.h"
 
 #include <SFML/Graphics.hpp>
 
@@ -28,8 +27,27 @@ class Figure :
 	public Prototype
 {
 public:
+	class Memento
+	{
+	private:
+		sf::Vector2f m_position;
+		sf::Vector2f m_scale;
+		float m_rotation;
+	public:
+		Memento(sf::Vector2f position, float rotation, sf::Vector2f scale);
 
+		const sf::Vector2f getPosition() const;
+
+		const sf::Vector2f getScale() const;
+
+		float getRotation() const;
+
+	};
 	virtual ~Figure() {};
+	
+	virtual Memento* save() const = 0;
+
+	virtual void restore(const Memento* memento) = 0;
 
 	virtual void add(Figure* figure);
 
@@ -109,11 +127,10 @@ public:
 
 	friend std::istream& operator>> (std::istream& is, Figure& obj);
 
-protected:
-	virtual std::ostream& write(std::ostream& os) const = 0;
+	virtual std::ostream& write(std::ostream& os, short tabSize = 0) const = 0;
 	
 	virtual std::istream& read(std::istream& is) = 0;
-
+protected:
 	virtual const std::string& getName() const = 0;
 
 	Figure* m_parent = nullptr;

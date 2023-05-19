@@ -14,6 +14,7 @@
 #include <iostream>
 #include <unordered_map>
 #include <fstream>
+#include <stack>
 
 #define SCENE_WINDOW_WIDTH	720
 #define SCENE_WINDOW_HEIGHT	480
@@ -73,8 +74,6 @@ private:
 
 	void printColorHint(bool shortened = false);
 
-	void addFigure(InputMode back_to);
-
 	void printPrototypes();
 
 	bool addFigure();
@@ -93,19 +92,25 @@ private:
 
 	void deleteActive();
 
-	void endModifyingActiveFigure();
+	void finishModifyingActiveFigure();
 
 	void colorize_figure();
 
-	void finish_composite();
+	void finishComposite();
 
-	void scale_figure();
+	void startScalingFigure();
 
-	void rotate_figure();
+	void startRotatingFigure();
 
-	void move_figure();
+	void startMovingFigure();
 
-	void try_add_figure();
+	void startModifyingFigure(std::string hint, FigureEditor::EditMode mode);
+
+	void tryAddFigure();
+
+	void undo();
+
+	void redo();
 
 	//void unite_composites();
 
@@ -126,6 +131,10 @@ private:
 	std::unordered_map<std::string, Prototype*> m_prototypes;
 
 	std::list<std::string> m_prototype_names;
+
+	std::stack<const Figure::Memento*> m_undo;
+	std::stack<const Figure::Memento*> m_redo;
+	bool m_first_undo = true;
 
 	Figure* m_active_figure = nullptr;
 

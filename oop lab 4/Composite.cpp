@@ -32,6 +32,21 @@ Composite::Composite(const Composite& obj)
     m_position = obj.m_position;*/
 }
 
+Figure::Memento* Composite::save() const
+{
+	return new Memento(
+		m_transform.getPosition(),
+		m_transform.getRotation(),
+		m_transform.getScale());
+}
+
+void Composite::restore(const Memento* memento)
+{
+	m_transform.setPosition(memento->getPosition());
+	m_transform.setRotation(memento->getRotation());
+	m_transform.setScale(memento->getScale());
+}
+
 Prototype* Composite::clone() 
 {
 	return (Prototype*)new Composite(*this);
@@ -259,69 +274,113 @@ Composite::~Composite()
 	}
 }
 
-std::ostream& Composite::write(std::ostream& os) const
+std::ostream& Composite::write(std::ostream& os, short tabSize) const
 {
-	os << '\n';
-	const std::string& name = getName();
-	os.write(name.c_str(), name.size());
-	os << '\n';
+	std::string tab(tabSize, '\t');
 
-	os.write((char*)&m_transform.getPosition(), sizeof(sf::Vector2f));
-	float rotation = m_transform.getRotation();
-	os.write((char*)&rotation, sizeof(float));
-	os.write((char*)&m_transform.getScale(), sizeof(sf::Vector2f));
+	os << tab << '\"' << getName() << '\"' << ": {\n";
+	tab += '\t';
+
+	const sf::Vector2f& position = m_transform.getPosition();
+	os << tab << "\"position\": {\n";
+	os << tab << "\t\"x\": " << position.x << '\n';
+	os << tab << "\t\"y\": " << position.y << '\n';
+	os << tab << "}\n";
+
+	os << tab << "\"rotation\": " << m_transform.getRotation() << '\n';
+
+	const sf::Vector2f& scale = m_transform.getScale();
+	os << tab << "\"scale\": {\n";
+	os << tab << "\t\"x\": " << scale.x << '\n';
+	os << tab << "\t\"y\": " << scale.y << '\n';
+	os << tab << "}\n";
+
+	os << tab << "\"elements\": [\n";
 	// Write a number of elements composite consist of.
-	size_t size = m_composition.size();
-	os.write((char*)&size, sizeof(size));
 	for (auto elem : m_composition)
 	{
-		os << *elem;
+		// 2 because of increasing tab string.
+		elem->write(os, tabSize + 2);
+		os << '\n';
 	}
+	tab = tab.substr(0, tabSize + 1);
+	os << tab << "]\n";
+	tab = tab.substr(0, tabSize);
+	os << tab << '}';
 	return os;
 }
 
 std::istream& Composite::read(std::istream& is)
 {
 	sf::Vector2f position;
-	is.read((char*)&position, sizeof(position));
-
-	float rotation = getRotation();
-	is.read((char*)&rotation, sizeof(rotation));
-
+	float rotation = 0;
 	sf::Vector2f scale;
-	is.read((char*)&scale, sizeof(scale));
+
+	std::string v;
+	// Skip "{" line
+	is.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+	// Skip "position": {" line
+	is.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+	// Skip to x value
+	is.ignore(std::numeric_limits<std::streamsize>::max(), ':');
+	is >> position.x;
+	// Skip to y value
+	is.ignore(std::numeric_limits<std::streamsize>::max(), ':');
+	is >> position.y;
+	// Skip empty line and "}" line
+	is.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+	is.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
+	// Skip to rotation value
+	is.ignore(std::numeric_limits<std::streamsize>::max(), ':');
+	is >> rotation;
+	// Skip empty line
+	is.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
+	// Skip "scale": {" line
+	//is >> v;
+	is.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+	// Skip to x value
+	is.ignore(std::numeric_limits<std::streamsize>::max(), ':');
+	is >> scale.x;
+	// Skip to y value
+	is.ignore(std::numeric_limits<std::streamsize>::max(), ':');
+	is >> scale.y;
+	// Skip empty line and "}" line
+	is.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+	is.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 
 	setPosition(position.x, position.y);
 	setRotation(rotation);
 	setScale(scale.x, scale.y);
 
-	size_t figure_count;
-	is.read((char*)&figure_count, sizeof(figure_count));
-	for (size_t i = 0; i < figure_count; i++)
+	// Skip "elements": [" line
+	is.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+	while (true)
 	{
-		Figure* figure = nullptr;
+		int len = is.tellg();
+		// Read line
+		std::string line;
+		std::getline(is, line);
+		if (line.find(']') != line.npos)
+		{
+			break;
+		} // Return to position before read.
+		is.seekg(len, std::ios_base::beg);
 
-		is.ignore(1, '\n');
+		Figure* figure = nullptr;
+		// Skip to element type
+		is.ignore(std::numeric_limits<std::streamsize>::max(), '\"');
+
 		std::string type;
-		getline(is, type);
-		std::cout << is.tellg() << std::endl;
-		try
-		{
-			figure = m_primitiveFigureFactory->create(type);
-		}
-		catch (const std::exception& e)
-		{
-			std::cout << "Error while reading. Wrong type string. The rest of the buffer:\n";
-			char c;
-			while (is >> c)
-			{
-				std::cout << std::hex << (int)c << ' ';
-			}
-			throw e;
-		}
+		std::getline(is, type, '\"');
+		figure = m_primitiveFigureFactory->create(type);
 		add(figure);
 		is >> *figure;
 	}
+	// Skip "}" line
+	is.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
 	return is;
 }
 

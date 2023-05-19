@@ -4,7 +4,7 @@ FigureEditor::Context::Context(Program* program_instance,
 	std::function<void()> quit_callback, sf::Vector2<bool>* draw_axis)
 {
     m_program_instance = program_instance;
-    m_quit_callback = quit_callback;
+    m_after_quit_callback = quit_callback;
 	m_draw_axis = draw_axis;
 }
 
@@ -13,35 +13,17 @@ FigureEditor::FigureEditor(Context* context)
 {
 }
 
-void FigureEditor::setInitialTransform(sf::Transformable transform)
+void FigureEditor::activate(EditMode mode, const Figure::Memento* memento)
 {
-	m_initial_active_figure_transform = transform;
-}
-
-void FigureEditor::setInitialMousePosition(const sf::Vector2f& pos)
-{
-	m_initial_mouse_position = pos;
-}
-
-void FigureEditor::activate(EditMode mode)
-{
+	m_initial_mouse_position = m_context->m_mouse_world_position;
 	m_mode = mode;
-	switch (m_mode)
+	if (memento == nullptr)
 	{
-	case FigureEditor::ROTATING:
-		m_initial_active_figure_transform.setRotation(m_edit_figure->getRotation());
-		//break;
-	case FigureEditor::MOVING:
-		m_initial_active_figure_transform.setPosition(m_edit_figure->getWorldPosition());
-		break;
-	case FigureEditor::SCALING:
-		m_initial_active_figure_transform.setScale(m_edit_figure->getScale());
-		break;
-	case FigureEditor::COLORING:
-		m_initial_active_figure_color = m_edit_figure->getColor();
-		break;
-	default:
-		break;
+		m_initial_figure_state = m_edit_figure->save();
+	}
+	else
+	{
+		m_initial_figure_state = memento;
 	}
 }
 
@@ -100,8 +82,10 @@ bool FigureEditor::handleInput(const sf::Event& event)
 			handled = true;
 		}
 		break;
-	case MouseButtonPressed:
-		m_context->m_quit_callback();
+	case MouseButtonReleased:
+		m_draw_axis.x = false;
+		m_draw_axis.y = false;
+		m_context->m_after_quit_callback();
 		handled = true;
 		break;
 	case MouseMoved:
@@ -122,19 +106,19 @@ void FigureEditor::OnMouseMoved()
 	case MOVING:
 	{
 		sf::Vector2f change(m_context->m_mouse_world_position - m_initial_mouse_position);
-		m_edit_figure->setPosition(m_initial_active_figure_transform.getPosition() + change);
+		m_edit_figure->setPosition(m_initial_figure_state->getPosition() + change);
 		break;
 	}
 	case ROTATING:
 	{
 		sf::Vector2f cur = m_context->m_mouse_world_position;
-		cur -= m_initial_active_figure_transform.getPosition();
+		cur -= m_initial_figure_state->getPosition();
 		sf::Vector2f initial = m_initial_mouse_position;
-		initial -= m_initial_active_figure_transform.getPosition();
+		initial -= m_initial_figure_state->getPosition();
 		float change = get_clockwise_angle(initial, cur);
-		float length = vector_length(m_context->m_mouse_world_position - m_initial_active_figure_transform.getPosition());
+		float length = vector_length(m_context->m_mouse_world_position - m_initial_figure_state->getPosition());
 		float c = get_clockwise_angle(sf::Vector2f(0.f, 1.f), cur);
-		m_edit_figure->setRotation(m_initial_active_figure_transform.getRotation() + change);
+		m_edit_figure->setRotation(m_initial_figure_state->getRotation() + change);
 		break;
 	}
 	case SCALING:
@@ -209,7 +193,7 @@ void FigureEditor::discardlActiveFigureChanges()
 	default:
 		break;
 	}
-	m_context->m_quit_callback();
+	m_context->m_after_quit_callback();
 }
 
 void FigureEditor::printColorHint(bool shortened)

@@ -84,3 +84,16 @@ std::istream& operator>> (std::istream& is, Figure& obj)
 {
 	return obj.read(is);
 };
+
+Figure::Memento::Memento(sf::Vector2f position, float rotation, sf::Vector2f scale)
+{
+	m_position = position;
+	m_rotation = rotation;
+	m_scale = scale;
+}
+
+const sf::Vector2f Figure::Memento::getPosition() const { return m_position; }
+
+const sf::Vector2f Figure::Memento::getScale() const { return m_scale; }
+
+float Figure::Memento::getRotation() const { return m_rotation; }

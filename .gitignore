@@ -361,3 +361,8 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+/oop lab 4/Originator.h
+/oop lab 4/Originator.cpp
+/oop lab 4/Memento.h
+/oop lab 4/Memento.cpp
+*.scene

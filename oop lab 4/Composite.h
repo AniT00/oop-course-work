@@ -13,6 +13,10 @@ public:
 
 	Composite(const Composite& obj);
 
+	Memento* save() const override;
+
+	void restore(const Memento* memento) override;
+
 	Prototype* clone() override;
 
 	static Figure* create();
@@ -80,7 +84,7 @@ public:
 	~Composite();
 
 private:
-	std::ostream& write(std::ostream& os) const override;
+	std::ostream& write(std::ostream& os, short tabSize = 0) const override;
 
 	std::istream& read(std::istream& is) override;
 

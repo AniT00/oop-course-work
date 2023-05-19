@@ -11,6 +11,9 @@ public:
 	*/
 	PrimitiveFigure(sf::Shape* shape);
 
+	Memento* save() const override;
+
+	void restore(const Memento* memento) override;
 
 	void move(const sf::Vector2f& offset) override;
 
@@ -63,7 +66,7 @@ public:
 	~PrimitiveFigure();
 
 protected:
-	std::ostream& write(std::ostream& os) const override;
+	std::ostream& write(std::ostream& os, short tabSize = 0) const override;
 
 	std::istream& read(std::istream& is) override;
 
